@@ -161,6 +161,8 @@ class FeedApi(object):
             result = self.rpc.get_bitasset_data(asset)
             self.feeds[asset] = self.decode_feed(
                 result["current_feed"]["settlement_price"])
+            self.asset_info[asset]["feed_lifetime_sec"] = \
+                result["options"]["feed_lifetime_sec"]
             if not self.witnessID:
                 continue
             for feed in result["feeds"]:

@@ -34,6 +34,7 @@ class FeedPrice(object):
             self.config = config
             return
         config = {}
+        config["witness"] = None
         config["timer_minute"] = 3
         config["max_update_hours"] = 23.5
         config["price_limit"] = {
@@ -206,7 +207,8 @@ class FeedPrice(object):
                 need_publish[asset] = real_price[asset]
                 continue
             if (datetime.utcnow() - my_feeds[asset]["timestamp"]). \
-                    total_seconds() > self.config["max_update_hours"]*60*60:
+                    total_seconds() > \
+                    self.feedapi.asset_info[asset]["feed_lifetime_sec"] - 600:
                 need_publish[asset] = real_price[asset]
                 continue
             change = fabs(my_feeds[asset]["price"] - real_price[asset]) * \
@@ -224,6 +226,7 @@ class FeedPrice(object):
         feed_need_publish = self.check_publish(
             self.feedapi.asset_list, self.feedapi.my_feeds, self.filter_price)
         if feed_need_publish:
+            self.logger.info("publish feeds: %s" % feed_need_publish)
             self.feedapi.publish_feed(feed_need_publish)
 
     def excute(self):
@@ -232,6 +235,7 @@ class FeedPrice(object):
                 self.task_get_price()
                 self.task_publish_price()
             except Exception as e:
+                print(e)
                 self.logger.exception(e)
             time.sleep(int(self.config["timer_minute"]*60))
 
