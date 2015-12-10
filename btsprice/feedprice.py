@@ -79,6 +79,7 @@ class FeedPrice(object):
         # get all order book
         self.bts_price.get_order_book_all()
 
+        self.bts_price.rate_btc["TCNY"] = self.bts_price.rate_btc["CNY"]
         # can add weight here
         for order_type in self.bts_price.order_types:
             for market in self.bts_price.order_book:

@@ -3,7 +3,7 @@
     "max_update_hours": 23.5,
     "timer_minute": 2,
     "asset_list": [
-        "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY",
+        "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY", "TCNY",
     "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"],
     "cli_wallet": {
         "host" : "localhost",
