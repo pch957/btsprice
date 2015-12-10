@@ -1,6 +1,5 @@
 {
     "witness": "",
-    "max_update_hours": 23.5,
     "timer_minute": 2,
     "asset_list": [
         "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY", "TCNY",
