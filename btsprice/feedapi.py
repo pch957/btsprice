@@ -152,6 +152,8 @@ class FeedApi(object):
         quote_precision = self.asset_info[quote["asset_id"]]["precision"]
         base_amount = (float(base["amount"])/10**base_precision)
         quote_amount = (float(quote["amount"])/10**quote_precision)
+        if quote_amount == 0:
+            return 0
         return float(base_amount/quote_amount)
 
     def fetch_feed(self):
