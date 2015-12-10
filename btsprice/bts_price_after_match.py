@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from btsprice.exchanges import Exchanges
 import time
+from math import fabs
 # from pprint import pprint
 
 
@@ -101,6 +102,24 @@ class BTSPriceAfterMatch(object):
             self.order_book["bter_cny"]["asset"] = "CNY"
             self.order_book["bter_cny"]["timestamp"] = self.timestamp
 
+    def test_valid(self):
+        valid_price_queue = []
+        valid_price_dict = {}
+        for market in self.order_book:
+            _price = (
+                self.order_book[market]["bids"][0][0] + self.
+                order_book[market]["asks"][0][0])/2
+            valid_price_queue.append(_price)
+            valid_price_dict[market] = _price
+        valid_price = get_median(valid_price_queue)
+        for market in self.order_book:
+            change = fabs((valid_price_dict[market] - valid_price)/valid_price)
+            # if offset more than 10%, this market is invalid
+            if change > 0.1:
+                self.order_book[market]["valid"] = False
+            else:
+                self.order_book[market]["valid"] = True
+
     def get_rate_btc(self):
         _order_book = self.exchanges.fetch_from_poloniex("USDT", "btc")
         if _order_book:
@@ -127,9 +146,12 @@ class BTSPriceAfterMatch(object):
         self.get_rate_btc()
         self.get_order_book_from_exchanges()
         self.get_order_book_from_wallet()
+        self.test_valid()
         for market in self.order_book:
             if self.timestamp - self.order_book[market]["timestamp"] \
                     >= self.timeout:
+                continue
+            if not self.order_book[market]["valid"]:
                 continue
             for order_type in self.order_types:
                 self.order_book_all[order_type].extend(
@@ -203,6 +225,11 @@ class BTSPriceAfterMatch(object):
         bid_price = price / (1+spread)
         ask_price = price / (1-spread)
         for market in self.order_book:
+            if self.timestamp - self.order_book[market]["timestamp"] \
+                    >= self.timeout:
+                continue
+            if not self.order_book[market]["valid"]:
+                continue
             quote = self.order_book[market]["asset"]
             valid_depth[market] = {
                 "bid_price": bid_price / self.rate_btc[quote], "bid_volume": 0,
