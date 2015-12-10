@@ -96,19 +96,22 @@ class FeedPrice(object):
     # these MPA's precision is 100, it's too small,
     # have to change the price
     # but we should fixed these at BTS2.0
-    def patch_nasdaqc(self, median_price):
-        if "SHENZHEN" in median_price:
-            median_price["SHENZHEN"] /= median_price["CNY"]
-        if "SHANGHAI" in median_price:
-            median_price["SHANGHAI"] /= median_price["CNY"]
-        if "NASDAQC" in median_price:
-            median_price["NASDAQC"] /= median_price["USD"]
-        if "NIKKEI" in median_price:
-            median_price["NIKKEI"] /= median_price["JPY"]
-        if "HANGSENG" in median_price:
-            median_price["HANGSENG"] /= median_price["HKD"]
+    def patch_nasdaqc(self, price):
+        if "SHENZHEN" in price:
+            price["SHENZHEN"] /= price["CNY"]
+        if "SHANGHAI" in price:
+            price["SHANGHAI"] /= price["CNY"]
+        if "NASDAQC" in price:
+            price["NASDAQC"] /= price["USD"]
+        if "NIKKEI" in price:
+            price["NIKKEI"] /= price["JPY"]
+        if "HANGSENG" in price:
+            price["HANGSENG"] /= price["HKD"]
 
-    def handle_median_price(self, bts_price_in_btc):
+    def price_filter(self, bts_price_in_btc):
+        self.filter_price = self.get_average_price(bts_price_in_btc)
+
+    def get_median_price(self, bts_price_in_btc):
         median_price = {}
         for asset in self.price_queue:
             if asset not in self.bts_price.rate_btc or \
@@ -122,7 +125,23 @@ class FeedPrice(object):
             median_price[asset] = sorted(
                 self.price_queue[asset])[int(len(self.price_queue[asset]) / 2)]
         self.patch_nasdaqc(median_price)
-        self.median_price = median_price
+        return median_price
+
+    def get_average_price(self, bts_price_in_btc):
+        average_price = {}
+        for asset in self.price_queue:
+            if asset not in self.bts_price.rate_btc or \
+                    self.bts_price.rate_btc[asset] is None:
+                continue
+            self.price_queue[asset].append(bts_price_in_btc
+                                           / self.bts_price.rate_btc[asset])
+            if len(self.price_queue[asset]) > \
+                    self.config["price_limit"]["median_length"]:
+                self.price_queue[asset].pop(0)
+            average_price[asset] = sum(
+                self.price_queue[asset])/len(self.price_queue[asset])
+        self.patch_nasdaqc(average_price)
+        return average_price
 
     def display_depth(self, volume):
         t = PrettyTable([
@@ -146,12 +165,12 @@ class FeedPrice(object):
             "median(/BTS)", "median(BTS/)"])
         t.align = 'r'
         t.border = True
-        for asset in sorted(self.median_price):
+        for asset in sorted(self.filter_price):
             _price_btc = "%.3f" % (1/self.bts_price.rate_btc[asset])
             _price_bts1 = "%.8f" % self.price_queue[asset][-1]
             _price_bts2 = "%.3f" % (1/self.price_queue[asset][-1])
-            _median_bts1 = "%.8f" % self.median_price[asset]
-            _median_bts2 = "%.3f" % (1/self.median_price[asset])
+            _median_bts1 = "%.8f" % self.filter_price[asset]
+            _median_bts2 = "%.3f" % (1/self.filter_price[asset])
             t.add_row([
                 asset, _price_btc, _price_bts1,
                 _price_bts2, _median_bts1, _median_bts2])
@@ -159,7 +178,7 @@ class FeedPrice(object):
 
     def task_feed_price(self):
         bts_price_in_btc, volume = self.fetch_bts_price()
-        self.handle_median_price(bts_price_in_btc)
+        self.price_filter(bts_price_in_btc)
         os.system("clear")
         cur_t = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(time.time()))
         bts_price_in_cny = bts_price_in_btc / self.bts_price.rate_btc["CNY"]
