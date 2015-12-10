@@ -34,6 +34,7 @@
             "core_exchange_factor": 1.01,
             "maintenance_collateral_ratio": 1750,
             "maximum_short_squeeze_ratio": 1100
-        }
+        },
+        "TCNY": {"maximum_short_squeeze_ratio": 1001}
     }
 }
