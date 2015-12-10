@@ -48,11 +48,11 @@ URL: <{url}>
 
     args = arg_parser.parse_args(args=argv[1:])
 
+    config_info = {}
     if (args.config):
         config_info = json.load(args.config)
-        print(config_info)
 
-    feedprice = FeedPrice()
+    feedprice = FeedPrice(config_info)
     feedprice.excute()
 
     return 0

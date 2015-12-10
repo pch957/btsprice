@@ -4,11 +4,14 @@
 from __future__ import print_function
 
 from btsprice.bts_price_after_match import BTSPriceAfterMatch
+from btsprice.feedapi import FeedApi
 import time
 import logging
 import logging.handlers
 import os
 from prettytable import PrettyTable
+from datetime import datetime
+from math import fabs
 import locale
 locale.setlocale(locale.LC_ALL, '')
 
@@ -20,17 +23,22 @@ class FeedPrice(object):
         self.init_bts_price()
         self.setup_log()
         self.init_mpa_info()
+        self.sample = self.config["price_limit"]["filter_minute"] / \
+            self.config["timer_minute"]
+        if self.sample < 1:
+            self.sample = 1
+        self.feedapi = FeedApi(config)
 
     def init_config(self, config):
         if config:
             self.config = config
             return
         config = {}
-        config["timer"] = 60
+        config["timer_minute"] = 3
         config["max_update_hours"] = 23.5
         config["price_limit"] = {
             "change_min": 0.5, "change_max": 50, "spread": 0.01,
-            "median_length": 9}
+            "filter_minute": 30}
         config["market_weight"] = {
             "poloniex_btc": 1, "yunbi_cny": 1, "btc38_cny": 1, "btc38_btc": 1}
 
@@ -119,8 +127,7 @@ class FeedPrice(object):
                 continue
             self.price_queue[asset].append(bts_price_in_btc
                                            / self.bts_price.rate_btc[asset])
-            if len(self.price_queue[asset]) > \
-                    self.config["price_limit"]["median_length"]:
+            if len(self.price_queue[asset]) > self.sample:
                 self.price_queue[asset].pop(0)
             median_price[asset] = sorted(
                 self.price_queue[asset])[int(len(self.price_queue[asset]) / 2)]
@@ -135,8 +142,7 @@ class FeedPrice(object):
                 continue
             self.price_queue[asset].append(bts_price_in_btc
                                            / self.bts_price.rate_btc[asset])
-            if len(self.price_queue[asset]) > \
-                    self.config["price_limit"]["median_length"]:
+            if len(self.price_queue[asset]) > self.sample:
                 self.price_queue[asset].pop(0)
             average_price[asset] = sum(
                 self.price_queue[asset])/len(self.price_queue[asset])
@@ -162,7 +168,7 @@ class FeedPrice(object):
     def display_price(self):
         t = PrettyTable([
             "asset", "current(/BTC)", "current(/BTS)", "current(BTS/)",
-            "median(/BTS)", "median(BTS/)"])
+            "median(/BTS)", "median(BTS/)", "my feed"])
         t.align = 'r'
         t.border = True
         for asset in sorted(self.filter_price):
@@ -171,12 +177,16 @@ class FeedPrice(object):
             _price_bts2 = "%.3f" % (1/self.price_queue[asset][-1])
             _median_bts1 = "%.8f" % self.filter_price[asset]
             _median_bts2 = "%.3f" % (1/self.filter_price[asset])
+            if self.feedapi.my_feeds and asset in self.feedapi.my_feeds:
+                _my_feed = "%.8f" % self.feedapi.my_feeds[asset]["price"]
+            else:
+                _my_feed = 'x'
             t.add_row([
                 asset, _price_btc, _price_bts1,
-                _price_bts2, _median_bts1, _median_bts2])
+                _price_bts2, _median_bts1, _median_bts2, _my_feed])
         print(t.get_string())
 
-    def task_feed_price(self):
+    def task_get_price(self):
         bts_price_in_btc, volume = self.fetch_bts_price()
         self.price_filter(bts_price_in_btc)
         os.system("clear")
@@ -188,13 +198,41 @@ class FeedPrice(object):
         print()
         self.display_price()
 
+    def check_publish(self, asset_list, my_feeds, real_price):
+        need_publish = {}
+        for asset in asset_list:
+            if asset not in my_feeds:
+                need_publish[asset] = real_price[asset]
+                continue
+            if (datetime.utcnow() - my_feeds[asset]["timestamp"]). \
+                    total_seconds() > self.config["max_update_hours"]*60*60:
+                need_publish[asset] = real_price[asset]
+                continue
+            change = fabs(my_feeds[asset]["price"] - real_price[asset]) * \
+                100.0 / my_feeds[asset]["price"]
+            if change > self.config["price_limit"]["change_min"] and  \
+                    change < self.config["price_limit"]["change_max"]:
+                need_publish[asset] = real_price[asset]
+                continue
+        return need_publish
+
+    def task_publish_price(self):
+        if not self.config["witness"]:
+            return
+        self.feedapi.fetch_feed()
+        feed_need_publish = self.check_publish(
+            self.feedapi.asset_list, self.feedapi.my_feeds, self.filter_price)
+        if feed_need_publish:
+            self.feedapi.publish_feed(feed_need_publish)
+
     def excute(self):
         while True:
             try:
-                self.task_feed_price()
+                self.task_get_price()
+                self.task_publish_price()
             except Exception as e:
                 self.logger.exception(e)
-            time.sleep(int(self.config["timer"]))
+            time.sleep(int(self.config["timer_minute"]*60))
 
 if __name__ == '__main__':
     feedprice = FeedPrice()
