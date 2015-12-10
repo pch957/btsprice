@@ -138,8 +138,6 @@ class FeedPrice(object):
                 self.valid_depth[market]["ask_volume"])
             t.add_row([
                 market, _bid_price, _bid_volume, _ask_price, _ask_volume])
-        print()
-        print("efficent depth: %s BTS" % "{:,.0f}".format(volume))
         print(t.get_string())
 
     def display_price(self):
@@ -157,15 +155,19 @@ class FeedPrice(object):
             t.add_row([
                 asset, _price_btc, _price_bts1,
                 _price_bts2, _median_bts1, _median_bts2])
-        print(time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(time.time())))
         print(t.get_string())
 
     def task_feed_price(self):
         bts_price_in_btc, volume = self.fetch_bts_price()
         self.handle_median_price(bts_price_in_btc)
         os.system("clear")
-        self.display_price()
+        cur_t = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(time.time()))
+        bts_price_in_cny = bts_price_in_btc / self.bts_price.rate_btc["CNY"]
+        print("[%s] efficent price: %.5f CNY/BTS, depth: %s BTS" % (
+            cur_t, bts_price_in_cny, "{:,.0f}".format(volume)))
         self.display_depth(volume)
+        print()
+        self.display_price()
 
     def excute(self):
         while True:
