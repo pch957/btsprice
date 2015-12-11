@@ -2,6 +2,7 @@
 import requests
 import json
 import logging
+from btsprice.misc import get_median
 from btsprice.yahoo import Yahoo
 
 
@@ -99,3 +100,60 @@ returnOrderBook&currencyPair=%s_%s" % (quote, base)
 
     def fetch_from_yahoo(self, assets=None):
         return(self.yahoo.fetch_price())
+
+    def get_btcprice_in_cny(self):
+        price_queue = []
+        _order_book = self.fetch_from_btc38("cny", "btc")
+        if _order_book:
+            _price_btc = (
+                _order_book["bids"][0][0] + _order_book["asks"][0][0]) / 2.0
+            price_queue.append(_price_btc)
+        try:
+            url = "https://data.btcchina.com/data/ticker?market=btccny"
+            result = requests.get(
+                url=url, headers=self.header, timeout=3).json()
+            price_queue.append(float(result["ticker"]["last"]))
+        except:
+            self.log.error("Error fetching results from btcchina!")
+        try:
+            url = "http://api.huobi.com/staticmarket/ticker_btc_json.js"
+            result = requests.get(
+                url=url, headers=self.header, timeout=3).json()
+            price_queue.append(float(result["ticker"]["last"]))
+        except:
+            self.log.error("Error fetching results from huobi!")
+        try:
+            url = "https://www.okcoin.cn/api/ticker.do?symbol=btc_cny"
+            result = requests.get(
+                url=url, headers=self.header, timeout=3).json()
+            price_queue.append(float(result["ticker"]["last"]))
+        except:
+            self.log.error("Error fetching results from okcoin!")
+        if price_queue:
+            return get_median(price_queue)
+        else:
+            return None
+
+    def get_btcprice_in_usd(self):
+        price_queue = []
+        _order_book = self.fetch_from_poloniex("USDT", "btc")
+        if _order_book:
+            _price_btc = (
+                _order_book["bids"][0][0] + _order_book["asks"][0][0]) / 2.0
+            price_queue.append(_price_btc)
+        try:
+            url = "https://www.okcoin.com/api/v1/ticker.do?symbol=btc_usd"
+            result = requests.get(
+                url=url, headers=self.header, timeout=3).json()
+            price_queue.append(float(result["ticker"]["last"]))
+        except:
+            self.log.error("Error fetching results from okcoin!")
+        if price_queue:
+            return get_median(price_queue)
+        else:
+            return None
+
+if __name__ == "__main__":
+    exchanges = Exchanges()
+    exchanges.get_btcprice_in_usd()
+    exchanges.get_btcprice_in_cny()

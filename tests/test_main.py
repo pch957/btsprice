@@ -9,7 +9,7 @@ parametrize = pytest.mark.parametrize
 
 from btsprice.exchanges import Exchanges
 from btsprice.bts_price_after_match import BTSPriceAfterMatch
-from btsprice.bts_price_after_match import get_median
+from btsprice.misc import get_median
 from pprint import pprint
 
 

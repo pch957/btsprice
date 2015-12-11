@@ -2,19 +2,8 @@
 from btsprice.exchanges import Exchanges
 import time
 from math import fabs
+from btsprice.misc import get_median
 # from pprint import pprint
-
-
-def get_median(prices):
-    lenth = len(prices)
-    if lenth == 0:
-        return None
-    _index = int(lenth / 2)
-    if lenth % 2 == 0:
-        median_price = float((prices[_index - 1] + prices[_index])) / 2
-    else:
-        median_price = prices[_index]
-    return median_price
 
 
 class BTSPriceAfterMatch(object):
@@ -40,6 +29,13 @@ class BTSPriceAfterMatch(object):
     def get_rate_from_yahoo(self):
         _rate_yahoo = self.exchanges.fetch_from_yahoo()
         if _rate_yahoo:
+            if "USD" not in self.rate_btc:
+                self.rate_btc["USD"] = 1/_rate_yahoo["USD"]["BTC"]
+                self.rate_btc["CNY"] = \
+                    _rate_yahoo["USD"]["CNY"]/_rate_yahoo["USD"]["BTC"]
+
+            del _rate_yahoo["USD"]["BTC"]
+            del _rate_yahoo["USD"]["CNY"]
             self.timestamp_rate_yahoo = self.timestamp
             self.rate_yahoo = _rate_yahoo
 
@@ -121,22 +117,16 @@ class BTSPriceAfterMatch(object):
                 self.order_book[market]["valid"] = True
 
     def get_rate_btc(self):
-        _order_book = self.exchanges.fetch_from_poloniex("USDT", "btc")
-        if _order_book:
-            _price_btc = (
-                _order_book["bids"][0][0] + _order_book["asks"][0][0]) / 2.0
-            # print("price of BTC %.3f(USD)" % _price_btc)
-            for asset in self.rate_yahoo["USD"]:
+        price_btc = self.exchanges.get_btcprice_in_usd()
+        if price_btc:
+            self.rate_btc["USD"] = 1/price_btc
+        price_btc = self.exchanges.get_btcprice_in_cny()
+        if price_btc:
+            self.rate_btc["CNY"] = 1/price_btc
+        for base in ["USD", "CNY"]:
+            for asset in self.rate_yahoo[base]:
                 self.rate_btc[asset] = \
-                    self.rate_yahoo["USD"][asset] / _price_btc
-        _order_book = self.exchanges.fetch_from_btc38("cny", "btc")
-        if _order_book:
-            _price_btc = (
-                _order_book["bids"][0][0] + _order_book["asks"][0][0]) / 2.0
-            # print("price of BTC %.3f(CNY)" % _price_btc)
-            for asset in self.rate_yahoo["CNY"]:
-                self.rate_btc[asset] = \
-                    self.rate_yahoo["CNY"][asset] / _price_btc
+                    self.rate_yahoo[base][asset] * self.rate_btc[base]
 
     def get_order_book_all(self):
         self.timestamp = time.time()

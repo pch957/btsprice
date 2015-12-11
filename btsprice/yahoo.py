@@ -23,8 +23,8 @@ class Yahoo(object):
         self.rate = {'CNY': {'CNY': 1.0}, 'USD': {'USD': 1.0}}
 
     def init_param_dict1(self):
-        assets = ["KRW", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD",
-                  "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR"]
+        assets = ["CNY", "KRW", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD",
+                  "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "BTC"]
         for asset in assets:
             self.param_s[asset] = asset + "USD=X"
 
