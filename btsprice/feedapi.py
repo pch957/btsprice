@@ -101,7 +101,7 @@ class FeedApi(object):
         self.fetch_feed()
 
     def encode_feed(self, asset, price, custom={}):
-        feed_info = self.feed_temple
+        feed_info = self.feed_temple.copy()
         feed_info["settlement_price"]["base"]["asset_id"] = \
             self.asset_info[asset]["id"]
         feed_info["core_exchange_rate"]["base"]["asset_id"] = \
