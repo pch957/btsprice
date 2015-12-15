@@ -50,9 +50,6 @@ class Exchanges():
                     order[1] = float(order[1])
             order_book_ask = sorted(result["asks"])
             order_book_bid = sorted(result["bids"], reverse=True)
-            for bid_order in result["bids"]:
-                order_book_bid.append(
-                    [float(bid_order[0]), float(bid_order[1])])
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
             self.log.error("Error fetching results from bter!")
@@ -90,9 +87,6 @@ returnOrderBook&currencyPair=%s_%s" % (quote, base)
                     order[1] = float(order[1])
             order_book_ask = sorted(result["asks"])
             order_book_bid = sorted(result["bids"], reverse=True)
-            for bid_order in result["bids"]:
-                order_book_bid.append(
-                    [float(bid_order[0]), float(bid_order[1])])
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
             self.log.error("Error fetching results from bter!")
