@@ -89,7 +89,7 @@ returnOrderBook&currencyPair=%s_%s" % (quote, base)
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching results from bter!")
+            self.log.error("Error fetching results from poloniex!")
             return
 
     def fetch_from_yahoo(self, assets=None):
