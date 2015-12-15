@@ -94,6 +94,8 @@ class FeedPrice(object):
         # calculate real price
         volume, volume_sum, real_price = self.bts_price.get_real_price(
             spread=self.config["price_limit"]["spread"])
+        if real_price is None:
+            return real_price, volume
         self.valid_depth = self.bts_price.get_valid_depth(
             price=real_price,
             spread=self.config["price_limit"]["spread"])
@@ -190,6 +192,8 @@ class FeedPrice(object):
 
     def task_get_price(self):
         bts_price_in_btc, volume = self.fetch_bts_price()
+        if bts_price_in_btc is None or volume <= 0.0:
+            return
         self.price_filter(bts_price_in_btc)
         os.system("clear")
         cur_t = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(time.time()))

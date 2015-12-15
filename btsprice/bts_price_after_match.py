@@ -108,6 +108,7 @@ class BTSPriceAfterMatch(object):
             valid_price_queue.append(_price)
             valid_price_dict[market] = _price
         valid_price = get_median(valid_price_queue)
+        counter = 0
         for market in self.order_book:
             change = fabs((valid_price_dict[market] - valid_price)/valid_price)
             # if offset more than 10%, this market is invalid
@@ -115,6 +116,11 @@ class BTSPriceAfterMatch(object):
                 self.order_book[market]["valid"] = False
             else:
                 self.order_book[market]["valid"] = True
+                counter += 1
+        # all market is invalid if we got valid market less than 2
+        if counter < 2:
+            for market in self.order_book:
+                self.order_book[market]["valid"] = False
 
     def get_rate_btc(self):
         price_btc = self.exchanges.get_btcprice_in_usd()
@@ -149,6 +155,13 @@ class BTSPriceAfterMatch(object):
         self.order_book_all["bids"] = sorted(
             self.order_book_all["bids"], reverse=True)
         self.order_book_all["asks"] = sorted(self.order_book_all["asks"])
+
+    def is_order_book_valid(self):
+        if len(self.order_book_all["bids"]) == 0 or \
+                len(self.order_book_all["asks"]) == 0:
+            return False
+        else:
+            return True
 
     def get_spread_order_book(self, spread=0.0):
         order_bids = []
@@ -188,10 +201,12 @@ class BTSPriceAfterMatch(object):
         return ([bid_volume, ask_volume, median_price])
 
     def get_real_price(self, spread=0.0):
+        if not self.is_order_book_valid():
+            return [0.0, 0.0, None]
         order_bids, order_asks = self.get_spread_order_book(spread)
         price_list = self.get_price_list(order_bids, order_asks)
         if len(price_list) < 1:
-            return [0.0, (order_bids[0][0] + order_asks[0][0]) / 2]
+            return [0.0, 0.0, (order_bids[0][0] + order_asks[0][0]) / 2]
         match_result = []
         while True:
             bid_volume, ask_volume, median_price = self.get_match_result(
@@ -247,10 +262,13 @@ if __name__ == "__main__":
     bts_price.get_order_book_all()
     volume, volume_sum, real_price = bts_price.get_real_price(
         spread=0.01)
-    valid_depth = bts_price.get_valid_depth(
-        price=real_price,
-        spread=0.01)
-    price_cny = real_price / bts_price.rate_btc["CNY"]
-    print(
-        "price is %.5f CNY/BTS, volume is %.3f" % (price_cny, volume))
-    print("efficent depth : %s" % valid_depth)
+    if real_price:
+        valid_depth = bts_price.get_valid_depth(
+            price=real_price,
+            spread=0.01)
+        price_cny = real_price / bts_price.rate_btc["CNY"]
+        print(
+            "price is %.5f CNY/BTS, volume is %.3f" % (price_cny, volume))
+        print("efficent depth : %s" % valid_depth)
+    else:
+        print("can't get valid market order")
