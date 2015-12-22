@@ -235,8 +235,8 @@ def doc_open():
 def get_tasks():
     """Get all paver-defined tasks."""
     from paver.tasks import environment
-    for task in environment.get_tasks():
-        print(task.shortname)
+    for _task in environment.get_tasks():
+        print(_task.shortname)
 
 
 @task
