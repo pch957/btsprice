@@ -25,7 +25,7 @@
 #
 ###############################################################################
 
-from btsprice.graphenehttprpc import GrapheneHTTPRPC
+from bts.http_rpc import HTTPRPC
 from datetime import datetime
 import fractions
 
@@ -75,14 +75,14 @@ class FeedApi(object):
             "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"]
         self.witness = None
         self.password = ""
-        self.rpc = GrapheneHTTPRPC()
+        self.rpc = HTTPRPC("localhost", "8092", "", "")
 
     def init_config(self, config):
         self.asset_list = config["asset_list"]
         self.witness = config["witness"]
         cli_wallet = config["cli_wallet"]
         self.password = cli_wallet["unlock"]
-        self.rpc = GrapheneHTTPRPC(
+        self.rpc = HTTPRPC(
             cli_wallet["host"], cli_wallet["port"],
             cli_wallet["user"], cli_wallet["passwd"])
         self.feed_temple["maintenance_collateral_ratio"] = \
