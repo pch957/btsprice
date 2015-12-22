@@ -25,7 +25,7 @@
 #
 ###############################################################################
 
-from bts.http_rpc import HTTPRPC
+from bts import HTTPRPC
 from datetime import datetime
 import fractions
 
