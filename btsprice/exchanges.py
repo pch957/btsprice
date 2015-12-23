@@ -1,33 +1,28 @@
 # -*- coding: utf-8 -*-
-import requests
 import json
 import logging
-from btsprice.misc import get_median
-from btsprice.yahoo import Yahoo
+import asyncio
+import aiohttp
 
 
 class Exchanges():
-    # ------------------------------------------------------------------------
-    # Init
-    # ------------------------------------------------------------------------
     def __init__(self):
-        self.header = {'content-type': 'application/json',
-                       'User-Agent': 'Mozilla/5.0 Gecko/20100101 Firefox/22.0'}
+        header = {
+            'content-type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 Gecko/20100101 Firefox/22.0'}
+        self.session = aiohttp.ClientSession(headers=header)
         self.log = logging.getLogger('bts')
         self.order_types = ["bids", "asks"]
-        self.yahoo = Yahoo()
 
-    # ------------------------------------------------------------------------
-    # Fetch data
-    # ------------------------------------------------------------------------
-    #
-    def fetch_from_btc38(self, quote="cny", base="bts"):
+    @asyncio.coroutine
+    def orderbook_btc38(self, quote="cny", base="bts"):
         try:
             url = "http://api.btc38.com/v1/depth.php"
             params = {'c': base, 'mk_type': quote}
-            response = requests.get(
-                url=url, params=params, headers=self.header, timeout=3)
-            result = json.loads(vars(response)['_content'].decode("utf-8-sig"))
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
             for order_type in self.order_types:
                 for order in result[order_type]:
                     order[0] = float(order[0])
@@ -36,14 +31,15 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching results from btc38!")
-            return
+            self.log.error("Error fetching book from btc38!")
 
-    def fetch_from_bter(self, quote="cny", base="bts"):
+    @asyncio.coroutine
+    def orderbook_bter(self, quote="cny", base="bts"):
         try:
             url = "http://data.bter.com/api/1/depth/%s_%s" % (base, quote)
-            result = requests.get(
-                url=url, headers=self.header, timeout=3).json()
+            response = yield from asyncio.wait_for(self.session.get(
+                url), 120)
+            result = yield from response.json()
             for order_type in self.order_types:
                 for order in result[order_type]:
                     order[0] = float(order[0])
@@ -52,35 +48,43 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching results from bter!")
-            return
+            self.log.error("Error fetching book from bter!")
 
-    def fetch_from_yunbi(self, quote="cny", base="bts"):
+    @asyncio.coroutine
+    def orderbook_yunbi(self, quote="cny", base="bts"):
         try:
             url = "https://yunbi.com/api/v2/depth.json"
-            params = {'market': base+quote}
-            result = requests.get(
-                url=url, params=params, headers=self.header, timeout=3).json()
+            params = {'market': base+quote, 'limit': 20}
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            result = yield from response.json()
             for order_type in self.order_types:
                 for order in result[order_type]:
                     order[0] = float(order[0])
                     order[1] = float(order[1])
             order_book_ask = sorted(result["asks"])
             order_book_bid = sorted(result["bids"], reverse=True)
-            return {"bids": order_book_bid, "asks": order_book_ask}
+            time = int(result["timestamp"])
+            return {
+                "bids": order_book_bid, "asks": order_book_ask, "time": time}
         except:
-            self.log.error("Error fetching results from yunbi!")
-            return
+            self.log.error("Error fetching book from yunbi!")
 
-    def fetch_from_poloniex(self, quote="btc", base="bts"):
+    @asyncio.coroutine
+    def orderbook_poloniex(self, quote="btc", base="bts"):
         try:
             quote = quote.upper()
             base = base.upper()
-            url = "http://poloniex.com/public?command=\
-returnOrderBook&currencyPair=%s_%s" % (quote, base)
+            url = "http://poloniex.com/public"
+            params = {
+                "command": "returnOrderBook",
+                "currencyPair": "%s_%s" % (quote, base),
+                "depth": 50
+                }
 
-            result = requests.get(
-                url=url, headers=self.header, timeout=3).json()
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            result = yield from response.json()
             for order_type in self.order_types:
                 for order in result[order_type]:
                     order[0] = float(order[0])
@@ -89,65 +93,131 @@ returnOrderBook&currencyPair=%s_%s" % (quote, base)
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching results from poloniex!")
-            return
+            self.log.error("Error fetching book from poloniex!")
 
-    def fetch_from_yahoo(self, assets=None):
-        return(self.yahoo.fetch_price())
+    @asyncio.coroutine
+    def ticker_btc38(self, quote="cny", base="bts"):
+        try:
+            url = "http://api.btc38.com/v1/ticker.php?c=%s&mk_type=%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = result["ticker"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            return _ticker
+        except:
+            self.log.error("Error fetching ticker from btc38!")
 
-    def get_btcprice_in_cny(self):
-        price_queue = []
-        _order_book = self.fetch_from_btc38("cny", "btc")
-        if _order_book:
-            _price_btc = (
-                _order_book["bids"][0][0] + _order_book["asks"][0][0]) / 2.0
-            price_queue.append(_price_btc)
+    @asyncio.coroutine
+    def ticker_poloniex(self, quote="USDT", base="BTC"):
         try:
-            url = "https://data.btcchina.com/data/ticker?market=btccny"
-            result = requests.get(
-                url=url, headers=self.header, timeout=3).json()
-            price_queue.append(float(result["ticker"]["last"]))
-        except:
-            self.log.error("Error fetching results from btcchina!")
-        try:
-            url = "http://api.huobi.com/staticmarket/ticker_btc_json.js"
-            result = requests.get(
-                url=url, headers=self.header, timeout=3).json()
-            price_queue.append(float(result["ticker"]["last"]))
-        except:
-            self.log.error("Error fetching results from huobi!")
-        try:
-            url = "https://www.okcoin.cn/api/ticker.do?symbol=btc_cny"
-            result = requests.get(
-                url=url, headers=self.header, timeout=3).json()
-            price_queue.append(float(result["ticker"]["last"]))
-        except:
-            self.log.error("Error fetching results from okcoin!")
-        if price_queue:
-            return get_median(price_queue)
-        else:
-            return None
 
-    def get_btcprice_in_usd(self):
-        price_queue = []
-        _order_book = self.fetch_from_poloniex("USDT", "btc")
-        if _order_book:
-            _price_btc = (
-                _order_book["bids"][0][0] + _order_book["asks"][0][0]) / 2.0
-            price_queue.append(_price_btc)
-        try:
-            url = "https://www.okcoin.com/api/v1/ticker.do?symbol=btc_usd"
-            result = requests.get(
-                url=url, headers=self.header, timeout=3).json()
-            price_queue.append(float(result["ticker"]["last"]))
+            url = "https://poloniex.com/public?command=returnTicker"
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(
+                response.decode("utf-8-sig"))["%s_%s" % (quote, base)]
+            _ticker = {}
+            _ticker["last"] = result["last"]
+            _ticker["vol"] = result["baseVolume"]
+            _ticker["buy"] = result["highestBid"]
+            _ticker["sell"] = result["lowestAsk"]
+            _ticker["low"] = result["low24hr"]
+            _ticker["high"] = result["high24hr"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            return _ticker
         except:
-            self.log.error("Error fetching results from okcoin!")
-        if price_queue:
-            return get_median(price_queue)
-        else:
-            return None
+            self.log.error("Error fetching ticker from btc38!")
+
+    @asyncio.coroutine
+    def ticker_btcchina(self, quote="cny", base="btc"):
+        try:
+            url = "https://data.btcchina.com/data/ticker?market=%s%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = result["ticker"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(_ticker["date"])
+            return _ticker
+        except:
+            self.log.error("Error fetching ticker from btcchina!")
+
+    @asyncio.coroutine
+    def ticker_huobi(self, base="btc"):
+        try:
+            url = "http://api.huobi.com/staticmarket/ticker_%s_json.js" % base
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = result["ticker"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(result['time'])
+            return _ticker
+        except:
+            self.log.error("Error fetching ticker from huobi!")
+
+    @asyncio.coroutine
+    def ticker_okcoin_cn(self, quote="cny", base="btc"):
+        try:
+            url = "https://www.okcoin.cn/api/ticker.do?symbol=%s_%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = result["ticker"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(result['date'])
+            return _ticker
+        except:
+            self.log.error("Error fetching ticker from okcoin cn!")
+
+    @asyncio.coroutine
+    def ticker_okcoin_com(self, quote="usd", base="btc"):
+        try:
+            url = "https://www.okcoin.com/api/v1/ticker.do?symbol=%s_%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = result["ticker"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(result['date'])
+            return _ticker
+        except:
+            self.log.error("Error fetching ticker from okcoin com!")
 
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
     exchanges = Exchanges()
-    exchanges.get_btcprice_in_usd()
-    exchanges.get_btcprice_in_cny()
+
+    @asyncio.coroutine
+    def run_task(coro, *args):
+        while True:
+            result = yield from coro(*args)
+            print(result)
+            yield from asyncio.sleep(120)
+
+    tasks = [
+        loop.create_task(run_task(exchanges.orderbook_btc38)),
+        loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
+        loop.create_task(run_task(exchanges.orderbook_bter)),
+        loop.create_task(run_task(exchanges.orderbook_yunbi)),
+        loop.create_task(run_task(exchanges.orderbook_poloniex)),
+        loop.create_task(run_task(exchanges.ticker_btc38)),
+        loop.create_task(run_task(exchanges.ticker_poloniex)),
+        loop.create_task(run_task(exchanges.ticker_btcchina)),
+        loop.create_task(run_task(exchanges.ticker_huobi)),
+        loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
+        loop.create_task(run_task(exchanges.ticker_okcoin_com))
+        ]
+    loop.run_until_complete(asyncio.wait(tasks))
+    loop.run_forever()
