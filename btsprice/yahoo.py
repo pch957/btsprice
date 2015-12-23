@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import requests
+import asyncio
+import aiohttp
 
 
 def is_float_try(str):
@@ -12,8 +13,10 @@ def is_float_try(str):
 
 class Yahoo(object):
     def __init__(self):
-        self.header = {'content-type': 'application/json',
-                       'User-Agent': 'Mozilla/5.0 Gecko/20100101 Firefox/22.0'}
+        header = {
+            'content-type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 Gecko/20100101 Firefox/22.0'}
+        self.session = aiohttp.ClientSession(headers=header)
         self.param_s = {}
         self.quote = {}
         self.scale = {}
@@ -57,16 +60,17 @@ class Yahoo(object):
         params = {'s': query_string, 'f': 'l1', 'e': '.csv'}
         return params
 
+    @asyncio.coroutine
     def fetch_price(self, assets=None):
         if assets is None:
             assets = self.param_s.keys()
         url = "http://download.finance.yahoo.com/d/quotes.csv"
         try:
             params = self.get_query_param(assets)
-            response = requests.get(
-                url=url, headers=self.header, params=params, timeout=3)
-
-            price = dict(zip(assets, response.text.split()))
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            response = yield from response.read()
+            price = dict(zip(assets, response.split()))
             for asset in assets:
                 if is_float_try(price[asset]):
                     scale = 1.0
@@ -84,6 +88,7 @@ class Yahoo(object):
         return self.rate
 
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
     yahoo = Yahoo()
-    rate = yahoo.fetch_price()
-    print(rate)
+    loop.run_until_complete(yahoo.fetch_price())
+    loop.run_forever()
