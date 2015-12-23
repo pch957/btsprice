@@ -80,7 +80,7 @@ class TaskExchanges(object):
             time_end += time_left
             yield from asyncio.sleep(time_left)
 
-    def get_tasks_ticker(self, loop):
+    def run_tasks_ticker(self, loop):
         return [
             loop.create_task(self.fetch_ticker(
                 "btc38", "CNY",
@@ -102,7 +102,7 @@ class TaskExchanges(object):
                 self.exchanges.ticker_okcoin_com, "usd", "btc")),
             ]
 
-    def get_tasks_orderbook(self, loop):
+    def run_tasks_orderbook(self, loop):
         return [
             loop.create_task(self.fetch_orderbook(
                 "btc38_cny", "CNY",
@@ -121,25 +121,24 @@ class TaskExchanges(object):
                 self.exchanges.orderbook_bter, "cny", "bts")),
             ]
 
-    def get_tasks(self, loop):
+    def run_tasks(self, loop):
         return [loop.create_task(self.fetch_yahoo_rate())] + \
-            self.get_tasks_orderbook(loop) + \
-            self.get_tasks_ticker(loop)
+            self.run_tasks_orderbook(loop) + \
+            self.run_tasks_ticker(loop)
 
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     task_exchanges = TaskExchanges()
     task_exchanges.set_period(10)
-    tasks = task_exchanges.get_tasks(loop)
+    tasks = task_exchanges.run_tasks(loop)
 
     @asyncio.coroutine
     def task_display():
+        datas = [
+            task_exchanges.ticker,
+            task_exchanges.orderbook]
         while True:
-            datas = [
-                task_exchanges.ticker,
-                task_exchanges.orderbook,
-                task_exchanges.yahoo_rate]
             for _data in datas:
                 for name in _data:
                     if "done" not in _data[name]:
@@ -147,6 +146,6 @@ if __name__ == "__main__":
                         _data[name]["done"] = None
             yield from asyncio.sleep(1)
     tasks += [loop.create_task(task_display())]
-
     loop.run_until_complete(asyncio.wait(tasks))
     loop.run_forever()
+    loop.close()
