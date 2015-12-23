@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import logging
 import asyncio
 import aiohttp
 
@@ -11,7 +10,6 @@ class Exchanges():
             'content-type': 'application/json',
             'User-Agent': 'Mozilla/5.0 Gecko/20100101 Firefox/22.0'}
         self.session = aiohttp.ClientSession(headers=header)
-        self.log = logging.getLogger('bts')
         self.order_types = ["bids", "asks"]
 
     @asyncio.coroutine
@@ -31,7 +29,7 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching book from btc38!")
+            print("Error fetching book from btc38!")
 
     @asyncio.coroutine
     def orderbook_bter(self, quote="cny", base="bts"):
@@ -48,7 +46,7 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching book from bter!")
+            print("Error fetching book from bter!")
 
     @asyncio.coroutine
     def orderbook_yunbi(self, quote="cny", base="bts"):
@@ -68,7 +66,7 @@ class Exchanges():
             return {
                 "bids": order_book_bid, "asks": order_book_ask, "time": time}
         except:
-            self.log.error("Error fetching book from yunbi!")
+            print("Error fetching book from yunbi!")
 
     @asyncio.coroutine
     def orderbook_poloniex(self, quote="btc", base="bts"):
@@ -93,7 +91,7 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            self.log.error("Error fetching book from poloniex!")
+            print("Error fetching book from poloniex!")
 
     @asyncio.coroutine
     def ticker_btc38(self, quote="cny", base="bts"):
@@ -108,7 +106,7 @@ class Exchanges():
                 _ticker[key] = float(_ticker[key])
             return _ticker
         except:
-            self.log.error("Error fetching ticker from btc38!")
+            print("Error fetching ticker from btc38!")
 
     @asyncio.coroutine
     def ticker_poloniex(self, quote="USDT", base="BTC"):
@@ -130,7 +128,7 @@ class Exchanges():
                 _ticker[key] = float(_ticker[key])
             return _ticker
         except:
-            self.log.error("Error fetching ticker from btc38!")
+            print("Error fetching ticker from btc38!")
 
     @asyncio.coroutine
     def ticker_btcchina(self, quote="cny", base="btc"):
@@ -146,7 +144,7 @@ class Exchanges():
             _ticker["time"] = int(_ticker["date"])
             return _ticker
         except:
-            self.log.error("Error fetching ticker from btcchina!")
+            print("Error fetching ticker from btcchina!")
 
     @asyncio.coroutine
     def ticker_huobi(self, base="btc"):
@@ -161,7 +159,7 @@ class Exchanges():
             _ticker["time"] = int(result['time'])
             return _ticker
         except:
-            self.log.error("Error fetching ticker from huobi!")
+            print("Error fetching ticker from huobi!")
 
     @asyncio.coroutine
     def ticker_okcoin_cn(self, quote="cny", base="btc"):
@@ -177,7 +175,7 @@ class Exchanges():
             _ticker["time"] = int(result['date'])
             return _ticker
         except:
-            self.log.error("Error fetching ticker from okcoin cn!")
+            print("Error fetching ticker from okcoin cn!")
 
     @asyncio.coroutine
     def ticker_okcoin_com(self, quote="usd", base="btc"):
@@ -193,7 +191,7 @@ class Exchanges():
             _ticker["time"] = int(result['date'])
             return _ticker
         except:
-            self.log.error("Error fetching ticker from okcoin com!")
+            print("Error fetching ticker from okcoin com!")
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
