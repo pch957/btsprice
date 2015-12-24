@@ -6,16 +6,16 @@ import asyncio
 
 
 class TaskExchanges(object):
-    def __init__(self):
-        self.order_types = ["bids", "asks"]
-        self.exchanges = Exchanges()
-        self.orderbook = {}
-        self.ticker = {}
-        self.yahoo = Yahoo()
-        self.yahoo_rate = {}
-        self.handler = None
-
+    def __init__(self, data={}):
         self.period = 120
+        self.exchanges = Exchanges()
+        self.yahoo = Yahoo()
+        self.handler = None
+        data_type = ["orderbook", "ticker", "rate"]
+        for _type in data_type:
+            if _type not in data:
+                data[_type] = {}
+        self.data = data
 
     def set_period(self, sec):
         self.period = sec
@@ -23,17 +23,18 @@ class TaskExchanges(object):
     @asyncio.coroutine
     def fetch_orderbook(self, name, quote, coro, *args):
         time_end = int(time.time())
+        orderbook = self.data["orderbook"]
         while True:
             time_begin = time_end
             _orderbook = yield from coro(*args)
             time_end = int(time.time())
             if _orderbook:
-                self.orderbook[name] = _orderbook
-                self.orderbook[name]["quote"] = quote
+                orderbook[name] = _orderbook
+                orderbook[name]["quote"] = quote
                 if "time" not in _orderbook:
-                    self.orderbook[name]["time"] = time_end
+                    orderbook[name]["time"] = time_end
                 if self.handler:
-                    self.handler("ticker", name, self.orderbook[name])
+                    self.handler("orderbook", name, orderbook[name])
             time_left = self.period - (time_end - time_begin)
             if time_left <= 1:
                 time_left = 1
@@ -43,6 +44,7 @@ class TaskExchanges(object):
     @asyncio.coroutine
     def fetch_ticker(self, name, quote, coro, *args):
         time_end = int(time.time())
+        ticker = self.data["ticker"]
         while True:
             time_begin = time_end
             _ticker = yield from coro(*args)
@@ -51,7 +53,7 @@ class TaskExchanges(object):
                 _ticker["quote"] = quote
                 if "time" not in _ticker:
                     _ticker["time"] = time_end
-                self.ticker[name] = _ticker
+                ticker[name] = _ticker
                 if self.handler:
                     self.handler("ticker", name, _ticker)
             time_left = self.period - (time_end - time_begin)
@@ -63,17 +65,18 @@ class TaskExchanges(object):
     @asyncio.coroutine
     def fetch_yahoo_rate(self):
         time_end = int(time.time())
+        rate = self.data["rate"]
         while True:
             time_begin = time_end
-            _yahoo_rate = yield from self.yahoo.fetch_price()
+            _rate = yield from self.yahoo.fetch_price()
             time_end = int(time.time())
-            if _yahoo_rate:
-                del _yahoo_rate["USD"]["BTC"]
-                del _yahoo_rate["USD"]["CNY"]
-                self.yahoo_rate["time"] = time_end
-                self.yahoo_rate["rate"] = _yahoo_rate
+            if _rate:
+                del _rate["USD"]["BTC"]
+                del _rate["USD"]["CNY"]
+                _rate["time"] = time_end
+                rate["yahoo"] = _rate
                 if self.handler:
-                    self.handler("yahoo_rate", None, self.yahoo_rate)
+                    self.handler("rate", "yahoo", _rate)
             time_left = self.period - (time_end - time_begin)
             if time_left <= 1:
                 time_left = 1
@@ -130,20 +133,18 @@ class TaskExchanges(object):
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     task_exchanges = TaskExchanges()
-    task_exchanges.set_period(10)
+    task_exchanges.set_period(20)
     tasks = task_exchanges.run_tasks(loop)
 
     @asyncio.coroutine
     def task_display():
-        datas = [
-            task_exchanges.ticker,
-            task_exchanges.orderbook]
+        my_data = task_exchanges.data
         while True:
-            for _data in datas:
-                for name in _data:
-                    if "done" not in _data[name]:
-                        print("got %s: %s" % (name, _data[name].keys()))
-                        _data[name]["done"] = None
+            for _type in my_data:
+                for _name in my_data[_type]:
+                    if "done" not in my_data[_type][_name]:
+                        print("got %s: %s" % (_type, _name))
+                        my_data[_type][_name]["done"] = None
             yield from asyncio.sleep(1)
     tasks += [loop.create_task(task_display())]
     loop.run_until_complete(asyncio.wait(tasks))
