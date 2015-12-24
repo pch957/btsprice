@@ -37,7 +37,8 @@ class TaskPusher(object):
 
 
 if __name__ == "__main__":
-    task_pusher = TaskPusher()
+    exchange_data = {}
+    task_pusher = TaskPusher(exchange_data)
     topic = "public.exchanges"
 
     def publish_data(_type, _name, _data):
@@ -45,7 +46,7 @@ if __name__ == "__main__":
         task_pusher.pusher.publish(topic, _type, _name, _data)
 
     from btsprice.task_exchanges import TaskExchanges
-    task_exchanges = TaskExchanges()
+    task_exchanges = TaskExchanges(exchange_data)
     task_exchanges.handler = publish_data
     task_exchanges.set_period(20)
 
