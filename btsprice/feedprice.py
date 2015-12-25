@@ -34,7 +34,11 @@ class FeedPrice(object):
             self.config["timer_minute"]
         if self.sample < 1:
             self.sample = 1
-        self.feedapi = FeedApi(config)
+        # don't need feedapi if not witness
+        if self.config["witness"]:
+            self.feedapi = FeedApi(config)
+        else:
+            self.feedapi = None
         self.filter_price = None
 
     def init_config(self, config):
@@ -200,7 +204,8 @@ class FeedPrice(object):
             _price_bts2 = "%.3f" % (1/self.price_queue[asset][-1])
             _median_bts1 = "%.8f" % self.filter_price[asset]
             _median_bts2 = "%.3f" % (1/self.filter_price[asset])
-            if self.feedapi.my_feeds and asset in self.feedapi.my_feeds:
+            if self.feedapi and self.feedapi.my_feeds and \
+                    asset in self.feedapi.my_feeds:
                 _my_feed = "%.8f" % self.feedapi.my_feeds[asset]["price"]
             else:
                 _my_feed = 'x'
