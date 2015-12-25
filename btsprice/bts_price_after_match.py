@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+import copy
 from math import fabs
 from btsprice.misc import get_median
 # from pprint import pprint
@@ -14,6 +15,7 @@ class BTSPriceAfterMatch(object):
         self.orderbook = {}
         self.global_orderbook = {"bids": [], "asks": []}
         self.rate_cny = {}
+        self.callback = None
 
     def set_timeout(self, timeout):
         self.timeout = timeout
@@ -67,23 +69,27 @@ class BTSPriceAfterMatch(object):
         rate = self.data["rate"]
         if len(rate) == 0:
             return
-        rate_yahoo = rate["yahoo"].copy()
+        rate_yahoo = rate["yahoo"]
         for quote in ["CNY", "USD"]:
             for base in rate_yahoo[quote]:
                 rate_cny[base] = rate_cny[quote] * rate_yahoo[quote][base]
+
+        rate_cny["TCNY"] = rate_cny["CNY"]
         self.rate_cny = rate_cny
 
     def update_orderbook(self):
         if not self.rate_cny:
             return
         self.global_orderbook = {"bids": [], "asks": []}
-        self.orderbook = self.data["orderbook"].copy()
+        self.orderbook = copy.deepcopy(self.data["orderbook"])
         self.remove_timeout(self.orderbook)
         for market in self.orderbook:
             change_rate = self.rate_cny[self.orderbook[market]["quote"]]
             self.change_order_with_rate(self.orderbook[market], change_rate)
         if not self.test_valid():
             return
+        if self.callback:
+            self.callback(self.orderbook)
         for market in self.orderbook:
             for order_type in self.order_types:
                 self.global_orderbook[order_type].extend(
