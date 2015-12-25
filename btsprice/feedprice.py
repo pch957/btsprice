@@ -75,7 +75,7 @@ class FeedPrice(object):
             task_pusher.set_expired(self.config["timer_minute"]*60+30)
             if "publish" in self.config["pusher"]:
                 def publish_data(_type, _name, _data):
-                    print("publish: %s %s" % (_type, _name))
+                    # print("publish: %s %s" % (_type, _name))
                     task_pusher.pusher.publish(topic, _type, _name, _data)
                 task_exchanges.handler = publish_data
             task_pusher.run_tasks(loop, login_info)
