@@ -70,9 +70,19 @@ class BTSPriceAfterMatch(object):
         if len(rate) == 0:
             return
         rate_yahoo = rate["yahoo"]
+
+        _change = fabs(price_btc["USD"] - rate_yahoo["USD"]["BTC"]) / \
+            rate_yahoo["USD"]["BTC"]
+        if _change >= 0.1:  # BTC price different more than 10%
+            return
+        _change = fabs(rate_cny["USD"] - 1/rate_yahoo["USD"]["CNY"]) / \
+            rate_cny["USD"]
+        if _change >= 0.1:  # rate USD/CNY different more than 10%
+            return
         for quote in ["CNY", "USD"]:
             for base in rate_yahoo[quote]:
-                rate_cny[base] = rate_cny[quote] * rate_yahoo[quote][base]
+                if base not in rate_cny:
+                    rate_cny[base] = rate_cny[quote] * rate_yahoo[quote][base]
 
         rate_cny["TCNY"] = rate_cny["CNY"]
         self.rate_cny = rate_cny
