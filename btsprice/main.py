@@ -53,7 +53,7 @@ URL: <{url}>
         config_info = json.load(args.config)
 
     feedprice = FeedPrice(config_info)
-    feedprice.excute()
+    feedprice.execute()
 
     return 0
 

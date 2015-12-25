@@ -3,6 +3,9 @@
 
 from __future__ import print_function
 
+import asyncio
+from btsprice.task_exchanges import TaskExchanges
+from btsprice.task_pusher import TaskPusher
 from btsprice.bts_price_after_match import BTSPriceAfterMatch
 from btsprice.feedapi import FeedApi
 import time
@@ -19,8 +22,12 @@ locale.setlocale(locale.LC_ALL, '')
 class FeedPrice(object):
 
     def __init__(self, config=None):
+        self.exchange_data = {}
         self.init_config(config)
-        self.init_bts_price()
+        self.bts_price = BTSPriceAfterMatch(self.exchange_data)
+        self.bts_price.callback = self.change_weight
+        self.init_tasks()
+
         self.setup_log()
         self.init_mpa_info()
         self.sample = self.config["price_limit"]["filter_minute"] / \
@@ -28,6 +35,7 @@ class FeedPrice(object):
         if self.sample < 1:
             self.sample = 1
         self.feedapi = FeedApi(config)
+        self.filter_price = None
 
     def init_config(self, config):
         if config:
@@ -35,6 +43,7 @@ class FeedPrice(object):
             return
         config = {}
         config["witness"] = None
+        config["pusher"] = {"enable": 0, "user": "", "password": ""}
         config["timer_minute"] = 3
         config["max_update_hours"] = 23.5
         config["price_limit"] = {
@@ -45,11 +54,29 @@ class FeedPrice(object):
 
         self.config = config
 
-    def init_bts_price(self):
-        self.bts_price = BTSPriceAfterMatch()
-        # don't use cover order, because it's feed price related,
-        # if there is a big order, feed price will down without stop
-        self.bts_price.set_need_cover(False)
+    def init_tasks(self):
+        loop = asyncio.get_event_loop()
+        # init task_exchanges
+        task_exchanges = TaskExchanges(self.exchange_data)
+        task_exchanges.set_period(int(self.config["timer_minute"])*60)
+
+        # init task_pusher
+        if self.config["pusher"]["enable"]:
+            topic = "bts.exchanges"
+            login_info = None
+            if self.config["pusher"]["user"]:
+                login_info = self.config["pusher"]
+            task_pusher = TaskPusher(self.exchange_data)
+            task_pusher.topic = topic
+            task_pusher.set_expired(self.config["timer_minute"]*60+30)
+            if "publish" in self.config["pusher"]:
+                def publish_data(_type, _name, _data):
+                    # print("publish: %s %s" % (_type, _name))
+                    task_pusher.pusher.publish(topic, _type, _name, _data)
+                task_exchanges.handler = publish_data
+            task_pusher.run_tasks(loop, login_info)
+
+        task_exchanges.run_tasks(loop)
 
     def setup_log(self):
         # Setting up Logger
@@ -73,35 +100,27 @@ class FeedPrice(object):
         self.time_publish_feed = 0
         self.adjust_scale = 1.00
 
-    def fetch_bts_price(self):
-        # updat rate cny
-        self.bts_price.get_rate_from_yahoo()
-
-        # get all order book
-        self.bts_price.get_order_book_all()
-
-        self.bts_price.rate_btc["TCNY"] = self.bts_price.rate_btc["CNY"]
-        # can add weight here
+    def change_weight(self, orderbook):
         for order_type in self.bts_price.order_types:
-            for market in self.bts_price.order_book:
+            for market in orderbook:
                 if market not in self.config["market_weight"]:
                     _weight = 0.0
                 else:
                     _weight = self.config["market_weight"][market]
-                for _order in self.bts_price.order_book[market][order_type]:
+                for _order in orderbook[market][order_type]:
                     _order[1] *= _weight
 
+    def get_bts_price(self):
         # calculate real price
-        volume, volume_sum, real_price = self.bts_price.get_real_price(
+        volume, volume_sum, real_price = self.bts_price.compute_price(
             spread=self.config["price_limit"]["spread"])
         if real_price is None:
             return real_price, volume
         self.valid_depth = self.bts_price.get_valid_depth(
             price=real_price,
             spread=self.config["price_limit"]["spread"])
-        price_cny = real_price / self.bts_price.rate_btc["CNY"]
         self.logger.info("fetch price is %.5f CNY/BTS, volume is %.3f",
-                         price_cny, volume)
+                         real_price, volume)
         self.logger.info("efficent depth : %s" % self.valid_depth)
         return real_price, volume
 
@@ -120,17 +139,17 @@ class FeedPrice(object):
         if "HANGSENG" in price:
             price["HANGSENG"] /= price["HKD"]
 
-    def price_filter(self, bts_price_in_btc):
-        self.filter_price = self.get_average_price(bts_price_in_btc)
+    def price_filter(self, bts_price_in_cny):
+        self.filter_price = self.get_average_price(bts_price_in_cny)
 
-    def get_median_price(self, bts_price_in_btc):
+    def get_median_price(self, bts_price_in_cny):
         median_price = {}
         for asset in self.price_queue:
-            if asset not in self.bts_price.rate_btc or \
-                    self.bts_price.rate_btc[asset] is None:
+            if asset not in self.bts_price.rate_cny or \
+                    self.bts_price.rate_cny[asset] is None:
                 continue
-            self.price_queue[asset].append(bts_price_in_btc
-                                           / self.bts_price.rate_btc[asset])
+            self.price_queue[asset].append(bts_price_in_cny
+                                           / self.bts_price.rate_cny[asset])
             if len(self.price_queue[asset]) > self.sample:
                 self.price_queue[asset].pop(0)
             median_price[asset] = sorted(
@@ -138,14 +157,14 @@ class FeedPrice(object):
         self.patch_nasdaqc(median_price)
         return median_price
 
-    def get_average_price(self, bts_price_in_btc):
+    def get_average_price(self, bts_price_in_cny):
         average_price = {}
         for asset in self.price_queue:
-            if asset not in self.bts_price.rate_btc or \
-                    self.bts_price.rate_btc[asset] is None:
+            if asset not in self.bts_price.rate_cny or \
+                    self.bts_price.rate_cny[asset] is None:
                 continue
-            self.price_queue[asset].append(bts_price_in_btc
-                                           / self.bts_price.rate_btc[asset])
+            self.price_queue[asset].append(bts_price_in_cny
+                                           / self.bts_price.rate_cny[asset])
             if len(self.price_queue[asset]) > self.sample:
                 self.price_queue[asset].pop(0)
             average_price[asset] = sum(
@@ -171,12 +190,12 @@ class FeedPrice(object):
 
     def display_price(self):
         t = PrettyTable([
-            "asset", "current(/BTC)", "current(/BTS)", "current(BTS/)",
+            "asset", "rate(CNY/)", "current(/BTS)", "current(BTS/)",
             "median(/BTS)", "median(BTS/)", "my feed"])
         t.align = 'r'
         t.border = True
         for asset in sorted(self.filter_price):
-            _price_btc = "%.3f" % (1/self.bts_price.rate_btc[asset])
+            _rate_cny = "%.3f" % (self.bts_price.rate_cny[asset])
             _price_bts1 = "%.8f" % self.price_queue[asset][-1]
             _price_bts2 = "%.3f" % (1/self.price_queue[asset][-1])
             _median_bts1 = "%.8f" % self.filter_price[asset]
@@ -186,20 +205,19 @@ class FeedPrice(object):
             else:
                 _my_feed = 'x'
             t.add_row([
-                asset, _price_btc, _price_bts1,
+                asset, _rate_cny, _price_bts1,
                 _price_bts2, _median_bts1, _median_bts2, _my_feed])
         print(t.get_string())
 
     def task_get_price(self):
-        bts_price_in_btc, volume = self.fetch_bts_price()
-        if bts_price_in_btc is None or volume <= 0.0:
+        bts_price, volume = self.get_bts_price()
+        if bts_price is None or volume <= 0.0:
             return
-        self.price_filter(bts_price_in_btc)
+        self.price_filter(bts_price)
         os.system("clear")
         cur_t = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(time.time()))
-        bts_price_in_cny = bts_price_in_btc / self.bts_price.rate_btc["CNY"]
         print("[%s] efficent price: %.5f CNY/BTS, depth: %s BTS" % (
-            cur_t, bts_price_in_cny, "{:,.0f}".format(volume)))
+            cur_t, bts_price, "{:,.0f}".format(volume)))
         self.display_depth(volume)
         print()
         self.display_price()
@@ -234,16 +252,29 @@ class FeedPrice(object):
             self.logger.info("publish feeds: %s" % feed_need_publish)
             self.feedapi.publish_feed(feed_need_publish)
 
-    def excute(self):
+    @asyncio.coroutine
+    def run_task(self):
+        config_timer = int(self.config["timer_minute"])*60
         while True:
             try:
                 self.task_get_price()
-                self.task_publish_price()
+                if self.filter_price:
+                    self.task_publish_price()
             except Exception as e:
                 print(e)
                 self.logger.exception(e)
-            time.sleep(int(self.config["timer_minute"]*60))
+            if self.filter_price:
+                timer = config_timer
+            else:
+                timer = 3
+            yield from asyncio.sleep(timer)
+
+    def execute(self):
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.run_task())
+        loop.run_forever()
+        loop.close()
 
 if __name__ == '__main__':
     feedprice = FeedPrice()
-    feedprice.excute()
+    feedprice.execute()

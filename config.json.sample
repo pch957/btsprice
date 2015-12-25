@@ -35,5 +35,11 @@
             "maximum_short_squeeze_ratio": 1100
         },
         "TCNY": {"maximum_short_squeeze_ratio": 1001}
+    },
+    "pusher": {
+        "common": "set enable to 1, if you want to subscribe data from pusher service",
+        "enable": "0",
+        "user": "",
+        "password": ""
     }
 }
