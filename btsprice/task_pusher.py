@@ -15,7 +15,7 @@ class TaskPusher(object):
                 data[_type] = {}
         self.data = data
 
-    def run_tasks(self, loop):
+    def run_tasks(self, loop, login_info=None):
         def onData(_type, _name, _data):
             print("receive: ", _type, _name)
             if not _type or not _name or not _data:
@@ -29,7 +29,7 @@ class TaskPusher(object):
                 return
             print("use:", _type, _name)
             self.data[_type][_name] = _data
-        self.pusher = Pusher(loop)
+        self.pusher = Pusher(loop, login_info)
         self.pusher.subscribe(onData, self.topic)
 
     def set_expired(self, sec):
