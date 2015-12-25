@@ -71,6 +71,7 @@ class TaskExchanges(object):
             _rate = yield from self.yahoo.fetch_price()
             time_end = int(time.time())
             if _rate:
+                _rate = _rate.copy()
                 del _rate["USD"]["BTC"]
                 del _rate["USD"]["CNY"]
                 _rate["time"] = time_end
