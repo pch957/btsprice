@@ -30,7 +30,7 @@ class TaskPusher(object):
             # print("use:", _type, _name)
             self.data[_type][_name] = _data
         self.pusher = Pusher(loop, login_info)
-        self.pusher.subscribe(onData, self.topic)
+        self.pusher.sync_subscribe(onData, self.topic)
 
     def set_expired(self, sec):
         self.expired = sec
