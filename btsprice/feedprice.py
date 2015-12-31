@@ -229,6 +229,9 @@ class FeedPrice(object):
     def check_publish(self, asset_list, my_feeds, real_price):
         need_publish = {}
         for asset in asset_list:
+            if asset not in my_feeds:
+                need_publish[asset] = real_price[asset]
+                continue
             change = fabs(my_feeds[asset]["price"] - real_price[asset]) * \
                 100.0 / my_feeds[asset]["price"]
             if change >= self.config["price_limit"]["change_max"]:
