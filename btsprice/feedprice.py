@@ -49,7 +49,6 @@ class FeedPrice(object):
         config["witness"] = None
         config["pusher"] = {"enable": 0, "user": "", "password": ""}
         config["timer_minute"] = 3
-        config["max_update_hours"] = 23.5
         config["price_limit"] = {
             "change_min": 0.5, "change_max": 50, "spread": 0.01,
             "filter_minute": 30}

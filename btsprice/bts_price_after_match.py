@@ -108,13 +108,13 @@ class BTSPriceAfterMatch(object):
             self.global_orderbook["bids"], reverse=True)
         self.global_orderbook["asks"] = sorted(self.global_orderbook["asks"])
 
-    def get_spread_orderbook(self, spread=0.0):
+    def get_spread_orderbook(self, spread=0.01):
         order_bids = []
         order_asks = []
         for order in self.global_orderbook["bids"]:
             order_bids.append([order[0]*(1 + spread), order[1]])
         for order in self.global_orderbook["asks"]:
-            order_asks.append([order[0]*(1 - spread), order[1]])
+            order_asks.append([order[0]/(1 + spread), order[1]])
         return order_bids, order_asks
 
     def get_price_list(self, order_bids, order_asks):
@@ -145,7 +145,7 @@ class BTSPriceAfterMatch(object):
             ask_volume += order[1]
         return ([bid_volume, ask_volume, median_price])
 
-    def compute_price(self, spread=0.0):
+    def compute_price(self, spread=0.01):
         self.timestamp = int(time.time())
         self.compute_rate_cny()
         self.update_orderbook()
@@ -174,10 +174,10 @@ class BTSPriceAfterMatch(object):
         # pprint(match_result)
         return match_result[0]
 
-    def get_valid_depth(self, price, spread=0.0):
+    def get_valid_depth(self, price, spread=0.01):
         valid_depth = {}
         bid_price = price / (1+spread)
-        ask_price = price / (1-spread)
+        ask_price = price * (1+spread)
         for market in self.orderbook:
             quote = self.orderbook[market]["quote"]
             valid_depth[market] = {
