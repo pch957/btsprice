@@ -85,6 +85,7 @@ class BTSPriceAfterMatch(object):
                     rate_cny[base] = rate_cny[quote] * rate_yahoo[quote][base]
 
         rate_cny["TCNY"] = rate_cny["CNY"]
+        rate_cny["TUSD"] = rate_cny["USD"]
         self.rate_cny = rate_cny
 
     def update_orderbook(self):

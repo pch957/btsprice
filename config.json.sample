@@ -34,7 +34,8 @@
             "maintenance_collateral_ratio": 1750,
             "maximum_short_squeeze_ratio": 1100
         },
-        "TCNY": {"maximum_short_squeeze_ratio": 1001}
+        "TCNY": {"maximum_short_squeeze_ratio": 1001},
+        "TUSD": {"maximum_short_squeeze_ratio": 1001}
     },
     "pusher": {
         "common": "set enable to 1, if you want to subscribe data from pusher service",
