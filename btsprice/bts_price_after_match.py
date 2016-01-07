@@ -10,7 +10,7 @@ class BTSPriceAfterMatch(object):
 
     def __init__(self, data):
         self.data = data
-        self.timeout = 300  # order book can't use after 300 seconds
+        self.timeout = 600  # order book can't use after 300 seconds
         self.order_types = ["bids", "asks"]
         self.orderbook = {}
         self.global_orderbook = {"bids": [], "asks": []}
@@ -37,6 +37,8 @@ class BTSPriceAfterMatch(object):
         valid_price_queue = []
         valid_price_dict = {}
         for market in self.market_weight:
+            if market not in self.orderbook:
+                continue
             _price = (
                 self.orderbook[market]["bids"][0][0] + self.
                 orderbook[market]["asks"][0][0])/2
