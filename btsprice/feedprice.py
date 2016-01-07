@@ -26,6 +26,7 @@ class FeedPrice(object):
         self.init_config(config)
         self.bts_price = BTSPriceAfterMatch(self.exchange_data)
         self.bts_price.callback = self.change_weight
+        self.bts_price.set_weight(self.config["market_weight"])
         self.init_tasks()
 
         self.setup_log()

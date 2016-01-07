@@ -17,6 +17,9 @@ class BTSPriceAfterMatch(object):
         self.rate_cny = {}
         self.callback = None
 
+    def set_weight(self, _market_weight):
+        self.market_weight = _market_weight
+
     def set_timeout(self, timeout):
         self.timeout = timeout
 
@@ -33,11 +36,12 @@ class BTSPriceAfterMatch(object):
     def test_valid(self):
         valid_price_queue = []
         valid_price_dict = {}
-        for market in self.orderbook:
+        for market in self.market_weight:
             _price = (
                 self.orderbook[market]["bids"][0][0] + self.
                 orderbook[market]["asks"][0][0])/2
-            valid_price_queue.append(_price)
+            if self.market_weight[market]:
+                valid_price_queue.append(_price)
             valid_price_dict[market] = _price
         valid_price = get_median(valid_price_queue)
         for market in list(self.orderbook.keys()):
