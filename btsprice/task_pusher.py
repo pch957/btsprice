@@ -16,8 +16,7 @@ class TaskPusher(object):
         self.data = data
 
     def run_tasks(self, loop, login_info=None):
-        def onData(_type, _name, _data):
-            # print("receive: ", _type, _name)
+        def onData(_type, _name, _data, *args, **kwargs):
             if not _type or not _name or not _data:
                 return
             if _type not in self.data:
