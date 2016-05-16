@@ -3,7 +3,7 @@
     "timer_minute": 2,
     "asset_list": [
         "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY", "TCNY",
-    "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "TUSD"],
+    "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "TUSD", "ARS"],
     "cli_wallet": {
         "host" : "localhost",
         "port" : 8092,

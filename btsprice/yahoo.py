@@ -27,7 +27,7 @@ class Yahoo(object):
 
     def init_param_dict1(self):
         assets = ["CNY", "KRW", "TRY", "SGD", "HKD", "RUB", "SEK", "NZD",
-                  "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "BTC"]
+                  "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "BTC", "ARS"]
         for asset in assets:
             self.param_s[asset] = asset + "USD=X"
 

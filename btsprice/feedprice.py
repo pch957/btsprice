@@ -97,7 +97,7 @@ class FeedPrice(object):
                           "SGD", "HKD", "RUB", "SEK", "NZD", "CNY",
                           "MXN", "CAD", "CHF", "AUD", "GBP", "JPY",
                           "EUR", "USD", "SHENZHEN", "NASDAQC", "NIKKEI",
-                          "HANGSENG", "SHANGHAI", "TCNY", "TUSD"]
+                          "HANGSENG", "SHANGHAI", "TCNY", "TUSD", "ARS"]
         self.price_queue = {}
         for asset in peg_asset_list:
             self.price_queue[asset] = []

@@ -72,7 +72,8 @@ class FeedApi(object):
     def init_default(self):
         self.asset_list = [
             "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY",
-            "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW"]
+            "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW",
+            "ARS"]
         self.witness = None
         self.password = ""
         self.rpc = HTTPRPC("localhost", "8092", "", "")
