@@ -83,6 +83,10 @@ class Yahoo(object):
                     else:
                         self.rate["USD"][asset] = float(price[asset]) * \
                             float(price[self.quote[asset]]) * scale
+                # there is a bug for yahoo api....
+                if asset == "GOLD" or asset == "SILVER":
+                    if self.rate["USD"][asset] < 1:
+                        self.rate["USD"][asset] = 1/self.rate["USD"][asset]
         except:
             print("Error fetching results from yahoo!")
         return self.rate
