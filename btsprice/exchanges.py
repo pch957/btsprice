@@ -129,7 +129,7 @@ class Exchanges():
                 _ticker[key] = float(_ticker[key])
             return _ticker
         except:
-            print("Error fetching ticker from btc38!")
+            print("Error fetching ticker from poloniex!")
 
     @asyncio.coroutine
     def ticker_btcchina(self, quote="cny", base="btc"):

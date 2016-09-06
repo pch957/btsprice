@@ -16,7 +16,7 @@ from prettytable import PrettyTable
 from datetime import datetime
 from math import fabs
 import locale
-locale.setlocale(locale.LC_ALL, '')
+locale.setlocale(locale.LC_ALL, 'C')
 
 
 class FeedPrice(object):
