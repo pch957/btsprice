@@ -14,6 +14,7 @@ class BTSPriceAfterMatch(object):
         self.order_types = ["bids", "asks"]
         self.orderbook = {}
         self.global_orderbook = {"bids": [], "asks": []}
+        self.market_weight = {"poloniex_btc": 1, "btc38_cny": 1}
         self.rate_cny = {}
         self.callback = None
 
@@ -47,6 +48,9 @@ class BTSPriceAfterMatch(object):
             valid_price_dict[market] = _price
         valid_price = get_median(valid_price_queue)
         for market in list(self.orderbook.keys()):
+            if market not in valid_price_dict:
+                del self.orderbook[market]
+                return
             change = fabs((valid_price_dict[market] - valid_price)/valid_price)
             # if offset more than 10%, this market is invalid
             if change > 0.1:
@@ -85,10 +89,24 @@ class BTSPriceAfterMatch(object):
             rate_cny["USD"]
         if _change >= 0.1:  # rate USD/CNY different more than 10%
             return
+        rate_source = {}
         for quote in ["CNY", "USD"]:
-            for base in rate_yahoo[quote]:
-                if base not in rate_cny:
-                    rate_cny[base] = rate_cny[quote] * rate_yahoo[quote][base]
+            for source in list(rate):
+                for base in rate[source][quote]:
+                    if base in rate_cny:
+                        continue
+                    if base not in rate_source:
+                        rate_source[base] = []
+                    _rate = rate[source][quote][base] * rate_cny[quote]
+                    rate_source[base].append(_rate)
+            for asset in rate_source:
+                asset_rate = sum(rate_source[asset])/float(len(rate_source[asset]))
+                for _rate in list(rate_source[asset]):
+                    if fabs((_rate - asset_rate)/asset_rate) > 0.1:
+                        asset_rate = None
+                        break
+                if asset_rate:
+                    rate_cny[asset] = asset_rate
 
         rate_cny["TCNY"] = rate_cny["CNY"]
         rate_cny["TUSD"] = rate_cny["USD"]

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from btsprice.exchanges import Exchanges
 from btsprice.yahoo import Yahoo
+from btsprice.sina import Sina
 import time
 import asyncio
 
@@ -10,6 +11,7 @@ class TaskExchanges(object):
         self.period = 120
         self.exchanges = Exchanges()
         self.yahoo = Yahoo()
+        self.sina = Sina()
         self.handler = None
         data_type = ["orderbook", "ticker", "rate"]
         for _type in data_type:
@@ -81,6 +83,25 @@ class TaskExchanges(object):
             time_end += time_left
             yield from asyncio.sleep(time_left)
 
+    @asyncio.coroutine
+    def fetch_sina_rate(self):
+        time_end = int(time.time())
+        rate = self.data["rate"]
+        while True:
+            time_begin = time_end
+            _rate = yield from self.sina.fetch_price()
+            time_end = int(time.time())
+            if _rate:
+                _rate["time"] = time_end
+                rate["Sina"] = _rate
+                if self.handler:
+                    self.handler("rate", "Sina", _rate)
+            time_left = self.period - (time_end - time_begin)
+            if time_left <= 1:
+                time_left = 1
+            time_end += time_left
+            yield from asyncio.sleep(time_left)
+
     def run_tasks_ticker(self, loop):
         return [
             loop.create_task(self.fetch_ticker(
@@ -123,7 +144,10 @@ class TaskExchanges(object):
             ]
 
     def run_tasks(self, loop):
-        return [loop.create_task(self.fetch_yahoo_rate())] + \
+        return [
+                loop.create_task(self.fetch_yahoo_rate()),
+                loop.create_task(self.fetch_sina_rate())
+                ] + \
             self.run_tasks_orderbook(loop) + \
             self.run_tasks_ticker(loop)
 
