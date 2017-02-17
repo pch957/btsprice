@@ -104,9 +104,9 @@ class TaskExchanges(object):
 
     def run_tasks_ticker(self, loop):
         return [
-            loop.create_task(self.fetch_ticker(
-                "btc38", "CNY",
-                self.exchanges.ticker_btc38, "cny", "btc")),
+            # loop.create_task(self.fetch_ticker(
+            #     "btc38", "CNY",
+            #     self.exchanges.ticker_btc38, "cny", "btc")),
             loop.create_task(self.fetch_ticker(
                 "poloniex", "USD",
                 self.exchanges.ticker_poloniex, "USDT", "BTC"))
