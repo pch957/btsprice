@@ -54,6 +54,7 @@ class FeedPrice(object):
             "change_min": 0.5, "change_max": 50, "spread": 0.01,
             "filter_minute": 30}
         config["market_weight"] = {
+            "btsbots_cny": 0.5, "btsbots_usd": 0.5, "btsbots_open.btc": 1,
             "poloniex_btc": 1, "yunbi_cny": 1, "btc38_cny": 1, "btc38_btc": 1}
 
         self.config = config

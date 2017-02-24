@@ -70,6 +70,30 @@ class Exchanges():
             print("Error fetching book from yunbi!")
 
     @asyncio.coroutine
+    def orderbook_btsbots(self, quote="CNY", base="BTS"):
+        try:
+            url = "https://btsbots.com/api/order?max_results=30&where="
+            # url = "http://localhost:5000/api/order?max_results=30&where="
+            params = "a_s==%s;a_b==%s" % (base, quote)
+            response = yield from asyncio.wait_for(self.session.get(
+                url+params), 120)
+            result = yield from response.json()
+            order_book_ask = []
+            for _o in result["_items"]:
+                order_book_ask.append([_o['p'], _o['b_s']])
+            params = "a_s==%s;a_b==%s" % (quote, base)
+            response = yield from asyncio.wait_for(self.session.get(
+                url+params), 120)
+            result = yield from response.json()
+            order_book_bid = []
+            for _o in result["_items"]:
+                order_book_bid.append([1/_o['p'], _o['b_b']])
+            return {
+                "bids": order_book_bid, "asks": order_book_ask}
+        except:
+            print("Error fetching book from btsbots!")
+
+    @asyncio.coroutine
     def orderbook_poloniex(self, quote="btc", base="bts"):
         try:
             quote = quote.upper()
@@ -206,6 +230,8 @@ if __name__ == "__main__":
             yield from asyncio.sleep(120)
 
     tasks = [
+        loop.create_task(run_task(exchanges.orderbook_btsbots)),
+        loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         loop.create_task(run_task(exchanges.orderbook_btc38)),
         loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
         loop.create_task(run_task(exchanges.orderbook_bter)),
