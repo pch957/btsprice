@@ -144,7 +144,8 @@ class FeedApi(object):
         return self.my_feeds
 
     def fetch_asset_info(self):
-        for asset in self.asset_list + ["BTS"] + self.alias.keys():
+        print(self.alias)
+        for asset in self.asset_list + ["BTS"] + list(self.alias):
             a = self.rpc.get_asset(asset)
             self.asset_info[asset] = a  # resolve SYMBOL
             self.asset_info[a["id"]] = a  # resolve id
@@ -161,7 +162,7 @@ class FeedApi(object):
         return float(base_amount/quote_amount)
 
     def fetch_feed(self):
-        for asset in self.asset_list + self.alias.keys():
+        for asset in self.asset_list + list(self.alias):
             result = self.rpc.get_bitasset_data(asset)
             self.feeds[asset] = self.decode_feed(
                 result["current_feed"]["settlement_price"])

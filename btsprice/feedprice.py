@@ -178,7 +178,7 @@ class FeedPrice(object):
                 self.price_queue[asset].pop(0)
             average_price[asset] = sum(
                 self.price_queue[asset])/len(self.price_queue[asset])
-        for asset in self.alias.keys():
+        for asset in list(self.alias):
             alias = self.alias[asset]
             if alias in average_price:
                 average_price[asset] = average_price[alias]
@@ -268,7 +268,7 @@ class FeedPrice(object):
             return
         self.feedapi.fetch_feed()
         feed_need_publish = self.check_publish(
-            self.feedapi.asset_list + self.alias.keys(),
+            self.feedapi.asset_list + list(self.alias),
             self.feedapi.my_feeds, self.filter_price)
         if feed_need_publish:
             self.logger.info("publish feeds: %s" % feed_need_publish)
