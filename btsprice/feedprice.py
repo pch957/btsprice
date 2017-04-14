@@ -41,6 +41,10 @@ class FeedPrice(object):
         else:
             self.feedapi = None
         self.filter_price = None
+        if 'alias' in self.config:
+            self.alias = self.config['alias']
+        else:
+            self.alias = {}
 
     def init_config(self, config):
         if config:
@@ -174,6 +178,10 @@ class FeedPrice(object):
                 self.price_queue[asset].pop(0)
             average_price[asset] = sum(
                 self.price_queue[asset])/len(self.price_queue[asset])
+        for asset in self.alias.keys():
+            alias = self.alias[asset]
+            if alias in average_price:
+                average_price[asset] = average_price[alias]
         self.patch_nasdaqc(average_price)
         return average_price
 
@@ -200,11 +208,15 @@ class FeedPrice(object):
         t.align = 'r'
         t.border = True
         for asset in sorted(self.filter_price):
-            _rate_cny = "%.3f" % (self.bts_price.rate_cny[asset])
-            _price_bts1 = "%.8f" % self.price_queue[asset][-1]
-            _price_bts2 = "%.3f" % (1/self.price_queue[asset][-1])
-            _median_bts1 = "%.8f" % self.filter_price[asset]
-            _median_bts2 = "%.3f" % (1/self.filter_price[asset])
+            if asset in self.alias:
+                _alias = self.alias[asset]
+            else:
+                _alias = asset
+            _rate_cny = "%.3f" % (self.bts_price.rate_cny[_alias])
+            _price_bts1 = "%.8f" % self.price_queue[_alias][-1]
+            _price_bts2 = "%.3f" % (1/self.price_queue[_alias][-1])
+            _median_bts1 = "%.8f" % self.filter_price[_alias]
+            _median_bts2 = "%.3f" % (1/self.filter_price[_alias])
             if self.feedapi and self.feedapi.my_feeds and \
                     asset in self.feedapi.my_feeds:
                 _my_feed = "%.8f" % self.feedapi.my_feeds[asset]["price"]
@@ -256,7 +268,8 @@ class FeedPrice(object):
             return
         self.feedapi.fetch_feed()
         feed_need_publish = self.check_publish(
-            self.feedapi.asset_list, self.feedapi.my_feeds, self.filter_price)
+            self.feedapi.asset_list + self.alias.keys(),
+            self.feedapi.my_feeds, self.filter_price)
         if feed_need_publish:
             self.logger.info("publish feeds: %s" % feed_need_publish)
             self.feedapi.publish_feed(feed_need_publish)

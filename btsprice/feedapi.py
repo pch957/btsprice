@@ -74,12 +74,15 @@ class FeedApi(object):
             "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY",
             "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW",
             "ARS"]
+        self.alias = {}
         self.witness = None
         self.password = ""
         self.rpc = HTTPRPC("localhost", "8092", "", "")
 
     def init_config(self, config):
         self.asset_list = config["asset_list"]
+        if "alias" in config:
+            self.alias = config["alias"]
         self.witness = config["witness"]
         cli_wallet = config["cli_wallet"]
         self.password = cli_wallet["unlock"]
@@ -141,7 +144,7 @@ class FeedApi(object):
         return self.my_feeds
 
     def fetch_asset_info(self):
-        for asset in self.asset_list + ["BTS"]:
+        for asset in self.asset_list + ["BTS"] + self.alias.keys():
             a = self.rpc.get_asset(asset)
             self.asset_info[asset] = a  # resolve SYMBOL
             self.asset_info[a["id"]] = a  # resolve id
@@ -158,7 +161,7 @@ class FeedApi(object):
         return float(base_amount/quote_amount)
 
     def fetch_feed(self):
-        for asset in self.asset_list:
+        for asset in self.asset_list + self.alias.keys():
             result = self.rpc.get_bitasset_data(asset)
             self.feeds[asset] = self.decode_feed(
                 result["current_feed"]["settlement_price"])
