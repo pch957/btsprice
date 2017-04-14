@@ -144,7 +144,6 @@ class FeedApi(object):
         return self.my_feeds
 
     def fetch_asset_info(self):
-        print(self.alias)
         for asset in self.asset_list + ["BTS"] + list(self.alias):
             a = self.rpc.get_asset(asset)
             self.asset_info[asset] = a  # resolve SYMBOL
