@@ -77,7 +77,7 @@ class FeedApi(object):
         self.alias = {}
         self.witness = None
         self.password = ""
-        self.rpc = HTTPRPC("localhost", "8092", "", "")
+        self.rpc = HTTPRPC("http://localhost:8092")
 
     def init_config(self, config):
         self.asset_list = config["asset_list"]
@@ -86,9 +86,11 @@ class FeedApi(object):
         self.witness = config["witness"]
         cli_wallet = config["cli_wallet"]
         self.password = cli_wallet["unlock"]
-        self.rpc = HTTPRPC(
-            cli_wallet["host"], cli_wallet["port"],
-            cli_wallet["user"], cli_wallet["passwd"])
+        if 'uri' in cli_wallet:
+            uri = cli_wallet["uri"]
+        else:
+            uri = "http://%s:%s" % (cli_wallet["host"], cli_wallet["port"])
+        self.rpc = HTTPRPC(uri)
         self.feed_temple["maintenance_collateral_ratio"] = \
             config["asset_config"]["default"]["maintenance_collateral_ratio"]
         self.feed_temple["maximum_short_squeeze_ratio"] = \
