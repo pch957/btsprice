@@ -214,9 +214,55 @@ class Exchanges():
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
             _ticker["time"] = int(result['date'])
+            _ticker['name'] = 'okcoin.com'
             return _ticker
         except:
             print("Error fetching ticker from okcoin com!")
+
+    @asyncio.coroutine
+    def ticker_bitstamp(self, quote="usd", base="btc"):
+        try:
+            url = "https://www.bitstamp.net/api/v2/ticker/%s%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = {"name": 'bitstamp'}
+            _ticker["last"] = result["last"]
+            _ticker["vol"] = result["volume"]
+            _ticker["buy"] = result["bid"]
+            _ticker["sell"] = result["ask"]
+            _ticker["low"] = result["low"]
+            _ticker["high"] = result["high"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(result['timestamp'])
+            return _ticker
+        except:
+            print("Error fetching ticker from bitstamp.net!")
+
+    @asyncio.coroutine
+    def ticker_btce(self, quote="usd", base="btc"):
+        try:
+            url = "https://btc-e.com/api/3/ticker/%s_%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            result = result["%s_%s" % (base, quote)]
+            _ticker = {"name": 'btce'}
+            _ticker["last"] = result["last"]
+            _ticker["vol"] = result["vol_cur"]
+            _ticker["buy"] = result["buy"]
+            _ticker["sell"] = result["sell"]
+            _ticker["low"] = result["low"]
+            _ticker["high"] = result["high"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(result['updated'])
+            return _ticker
+        except:
+            print("Error fetching ticker from btc-e.com!")
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -230,18 +276,20 @@ if __name__ == "__main__":
             yield from asyncio.sleep(120)
 
     tasks = [
-        loop.create_task(run_task(exchanges.orderbook_btsbots)),
-        loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
-        loop.create_task(run_task(exchanges.orderbook_btc38)),
-        loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
-        loop.create_task(run_task(exchanges.orderbook_bter)),
-        loop.create_task(run_task(exchanges.orderbook_yunbi)),
-        loop.create_task(run_task(exchanges.orderbook_poloniex)),
-        loop.create_task(run_task(exchanges.ticker_btc38)),
-        loop.create_task(run_task(exchanges.ticker_poloniex)),
-        loop.create_task(run_task(exchanges.ticker_btcchina)),
-        loop.create_task(run_task(exchanges.ticker_huobi)),
-        loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
+        # loop.create_task(run_task(exchanges.orderbook_btsbots)),
+        # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
+        # loop.create_task(run_task(exchanges.orderbook_btc38)),
+        # loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
+        # loop.create_task(run_task(exchanges.orderbook_bter)),
+        # loop.create_task(run_task(exchanges.orderbook_yunbi)),
+        # loop.create_task(run_task(exchanges.orderbook_poloniex)),
+        # loop.create_task(run_task(exchanges.ticker_btc38)),
+        # loop.create_task(run_task(exchanges.ticker_poloniex)),
+        # loop.create_task(run_task(exchanges.ticker_btcchina)),
+        # loop.create_task(run_task(exchanges.ticker_huobi)),
+        # loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
+        loop.create_task(run_task(exchanges.ticker_btce)),
+        loop.create_task(run_task(exchanges.ticker_bitstamp)),
         loop.create_task(run_task(exchanges.ticker_okcoin_com))
         ]
     loop.run_until_complete(asyncio.wait(tasks))
