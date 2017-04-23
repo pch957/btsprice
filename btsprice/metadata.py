@@ -8,7 +8,7 @@ Information describing the project.
 package = 'btsprice'
 project = "btsprice"
 project_no_spaces = project.replace(' ', '')
-version = '0.2.32'
+version = '0.2.33'
 description = 'get price for BitShares'
 authors = ['Alt']
 authors_string = ', '.join(authors)

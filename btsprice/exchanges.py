@@ -227,7 +227,7 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            _ticker = {"name": 'bitstamp'}
+            _ticker = {}
             _ticker["last"] = result["last"]
             _ticker["vol"] = result["volume"]
             _ticker["buy"] = result["bid"]
@@ -237,6 +237,7 @@ class Exchanges():
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
             _ticker["time"] = int(result['timestamp'])
+            _ticker["name"] = "bitstamp"
             return _ticker
         except:
             print("Error fetching ticker from bitstamp.net!")
@@ -250,7 +251,7 @@ class Exchanges():
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
             result = result["%s_%s" % (base, quote)]
-            _ticker = {"name": 'btce'}
+            _ticker = {}
             _ticker["last"] = result["last"]
             _ticker["vol"] = result["vol_cur"]
             _ticker["buy"] = result["buy"]
@@ -260,6 +261,7 @@ class Exchanges():
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
             _ticker["time"] = int(result['updated'])
+            _ticker["name"] = "btce"
             return _ticker
         except:
             print("Error fetching ticker from btc-e.com!")
@@ -284,7 +286,7 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
         # loop.create_task(run_task(exchanges.orderbook_poloniex)),
         # loop.create_task(run_task(exchanges.ticker_btc38)),
-        # loop.create_task(run_task(exchanges.ticker_poloniex)),
+        loop.create_task(run_task(exchanges.ticker_poloniex)),
         # loop.create_task(run_task(exchanges.ticker_btcchina)),
         # loop.create_task(run_task(exchanges.ticker_huobi)),
         # loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
