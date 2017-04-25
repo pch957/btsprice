@@ -13,7 +13,6 @@ import logging
 import logging.handlers
 import os
 from prettytable import PrettyTable
-from datetime import datetime
 from math import fabs
 import locale
 locale.setlocale(locale.LC_ALL, 'C')
@@ -253,8 +252,7 @@ class FeedPrice(object):
             if asset not in my_feeds:
                 need_publish[asset] = real_price[asset]
                 continue
-            if (datetime.utcnow() - my_feeds[asset]["timestamp"]). \
-                    total_seconds() > \
+            if time.time() - my_feeds[asset]["timestamp"] > \
                     self.feedapi.asset_info[asset]["feed_lifetime_sec"] - 600:
                 need_publish[asset] = real_price[asset]
                 continue

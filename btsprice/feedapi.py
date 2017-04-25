@@ -173,9 +173,12 @@ class FeedApi(object):
                 continue
             for feed in result["feeds"]:
                 if feed[0] == self.witnessID:
+                    ptimestamp = datetime.strptime(
+                        feed[1][0]+"+0000", "%Y-%m-%dT%H:%M:%S%z").timestamp()
+                    if ptimestamp == 0:
+                        continue
                     self.my_feeds[asset] = {}
-                    self.my_feeds[asset]["timestamp"] = datetime.strptime(
-                        feed[1][0], "%Y-%m-%dT%H:%M:%S")
+                    self.my_feeds[asset]["timestamp"] = ptimestamp
                     self.my_feeds[asset]["price"] = self.decode_feed(
                         feed[1][1]["settlement_price"])
 
