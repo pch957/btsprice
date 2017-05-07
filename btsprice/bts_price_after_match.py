@@ -74,7 +74,7 @@ class BTSPriceAfterMatch(object):
             if len(price_btc_queue[asset]) == 0:
                 return
             price_btc[asset] = get_median(price_btc_queue[asset])
-            print(price_btc[asset], price_btc_queue[asset])
+            # print(price_btc[asset], price_btc_queue[asset])
         rate_cny = {"CNY": 1.0}
         # rate_cny["BTC"] = price_btc["CNY"]
         # rate_cny["USD"] = price_btc["CNY"] / price_btc["USD"]
