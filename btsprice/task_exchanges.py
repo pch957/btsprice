@@ -116,6 +116,9 @@ class TaskExchanges(object):
             loop.create_task(self.fetch_ticker(
                 "bitstamp", "USD",
                 self.exchanges.ticker_bitstamp, "usd", "btc")),
+            loop.create_task(self.fetch_ticker(
+                "gdax", "USD",
+                self.exchanges.ticker_gdax, "usd", "btc")),
             # loop.create_task(self.fetch_ticker(
             #     "btcchina", "CNY",
             #     self.exchanges.ticker_btcchina, "cny", "btc")),
