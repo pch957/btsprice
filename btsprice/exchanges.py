@@ -103,7 +103,7 @@ class Exchanges():
             params = {
                 "command": "returnOrderBook",
                 "currencyPair": "%s_%s" % (quote, base),
-                "depth": 50
+                "depth": 150
                 }
 
             response = yield from asyncio.wait_for(self.session.get(
