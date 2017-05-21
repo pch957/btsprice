@@ -88,7 +88,7 @@ class BTSPriceAfterMatch(object):
 
         _change = fabs(price_btc["USD"] - rate_yahoo["USD"]["BTC"]) / \
             rate_yahoo["USD"]["BTC"]
-        if _change >= 0.1:  # BTC price different more than 10%
+        if _change >= 0.2:  # BTC price different more than 10%
             return
         _change = fabs(rate_cny["USD"] - 1/rate_yahoo["USD"]["CNY"]) / \
             rate_cny["USD"]
