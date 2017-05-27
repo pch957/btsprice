@@ -242,6 +242,8 @@ class FeedPrice(object):
     def check_publish(self, asset_list, my_feeds, real_price):
         need_publish = {}
         for asset in asset_list:
+            if self.feedapi.is_blackswan(asset):
+                continue
             if asset not in my_feeds:
                 need_publish[asset] = real_price[asset]
                 continue

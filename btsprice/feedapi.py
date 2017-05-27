@@ -33,6 +33,7 @@ import fractions
 class FeedApi(object):
     def __init__(self, config=None):
         self.witnessID = None
+        self.blackswan = []
         self.feeds = {}
         self.my_feeds = {}
         self.asset_info = {}
@@ -151,6 +152,9 @@ class FeedApi(object):
             self.asset_info[asset] = a  # resolve SYMBOL
             self.asset_info[a["id"]] = a  # resolve id
 
+    def is_blackswan(self, asset):
+        return asset in self.blackswan
+
     def decode_feed(self, price_info):
         base = price_info["base"]
         quote = price_info["quote"]
@@ -169,6 +173,8 @@ class FeedApi(object):
                 result["current_feed"]["settlement_price"])
             self.asset_info[asset]["feed_lifetime_sec"] = \
                 result["options"]["feed_lifetime_sec"]
+            if int(result['settlement_fund']) != 0:
+                self.blackswan.append(asset)
             if not self.witnessID:
                 continue
             for feed in result["feeds"]:
