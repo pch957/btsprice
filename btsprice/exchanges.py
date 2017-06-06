@@ -116,7 +116,7 @@ class Exchanges():
             order_book_ask = sorted(result["asks"])
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
-        except:
+        except Exception as e:
             print("Error fetching book from poloniex!")
 
     @asyncio.coroutine
@@ -127,12 +127,20 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            _ticker = result["ticker"]
+            _ticker = {}
+            _ticker["last"] = result['ticker']["last"]
+            _ticker["vol"] = result['ticker']["vol"]
+            _ticker["buy"] = result['ticker']["buy"]
+            _ticker["sell"] = result['ticker']["sell"]
+            _ticker["low"] = result['ticker']["low"]
+            _ticker["high"] = result['ticker']["high"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
+            _ticker["name"] = "btc38"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from btc38!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_poloniex(self, quote="USDT", base="BTC"):
@@ -152,9 +160,11 @@ class Exchanges():
             _ticker["high"] = result["high24hr"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
+            _ticker["name"] = "poloniex"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from poloniex!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_btcchina(self, quote="cny", base="btc"):
@@ -164,13 +174,21 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            _ticker = result["ticker"]
+            _ticker = {}
+            _ticker["last"] = result['ticker']["last"]
+            _ticker["vol"] = result['ticker']["vol"]
+            _ticker["buy"] = result['ticker']["buy"]
+            _ticker["sell"] = result['ticker']["sell"]
+            _ticker["low"] = result['ticker']["low"]
+            _ticker["high"] = result['ticker']["high"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
-            _ticker["time"] = int(_ticker["date"])
+            _ticker["time"] = int(result['ticker']["date"])
+            _ticker["name"] = "btcchina"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from btcchina!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_huobi(self, base="btc"):
@@ -179,13 +197,21 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            _ticker = result["ticker"]
+            _ticker = {}
+            _ticker["last"] = result['ticker']["last"]
+            _ticker["vol"] = result['ticker']["vol"]
+            _ticker["buy"] = result['ticker']["buy"]
+            _ticker["sell"] = result['ticker']["sell"]
+            _ticker["low"] = result['ticker']["low"]
+            _ticker["high"] = result['ticker']["high"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
             _ticker["time"] = int(result['time'])
+            _ticker["name"] = "huobi"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from huobi!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_okcoin_cn(self, quote="cny", base="btc"):
@@ -195,13 +221,21 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            _ticker = result["ticker"]
+            _ticker = {}
+            _ticker["last"] = result['ticker']["last"]
+            _ticker["vol"] = result['ticker']["vol"]
+            _ticker["buy"] = result['ticker']["buy"]
+            _ticker["sell"] = result['ticker']["sell"]
+            _ticker["low"] = result['ticker']["low"]
+            _ticker["high"] = result['ticker']["high"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
             _ticker["time"] = int(result['date'])
+            _ticker["name"] = "okcoin.cn"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from okcoin cn!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_okcoin_com(self, quote="usd", base="btc"):
@@ -211,14 +245,21 @@ class Exchanges():
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            _ticker = result["ticker"]
+            _ticker = {}
+            _ticker["last"] = result['ticker']["last"]
+            _ticker["vol"] = result['ticker']["vol"]
+            _ticker["buy"] = result['ticker']["buy"]
+            _ticker["sell"] = result['ticker']["sell"]
+            _ticker["low"] = result['ticker']["low"]
+            _ticker["high"] = result['ticker']["high"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
             _ticker["time"] = int(result['date'])
             _ticker['name'] = 'okcoin.com'
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from okcoin com!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_gdax(self, quote="usd", base="btc"):
@@ -242,8 +283,9 @@ class Exchanges():
                     result["time"][:19]+"+0000", "%Y-%m-%dT%H:%M:%S%z").timestamp())
             _ticker["name"] = "gdax"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from gdax.com!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_bitstamp(self, quote="usd", base="btc"):
@@ -265,8 +307,9 @@ class Exchanges():
             _ticker["time"] = int(result['timestamp'])
             _ticker["name"] = "bitstamp"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from bitstamp.net!")
+            print(e)
 
     @asyncio.coroutine
     def ticker_btce(self, quote="usd", base="btc"):
@@ -289,8 +332,34 @@ class Exchanges():
             _ticker["time"] = int(result['updated'])
             _ticker["name"] = "btce"
             return _ticker
-        except:
+        except Exception as e:
             print("Error fetching ticker from btc-e.com!")
+            print(e)
+
+    @asyncio.coroutine
+    def ticker_bitflyer(self, quote="usd", base="btc"):
+        try:
+            url = "https://api.bitflyer.jp/v1/%s_%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            result = result["%s_%s" % (base, quote)]
+            _ticker = {}
+            _ticker["last"] = result["last"]
+            _ticker["vol"] = result["vol_cur"]
+            _ticker["buy"] = result["buy"]
+            _ticker["sell"] = result["sell"]
+            _ticker["low"] = result["low"]
+            _ticker["high"] = result["high"]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(result['updated'])
+            _ticker["name"] = "btce"
+            return _ticker
+        except Exception as e:
+            print("Error fetching ticker from btc-e.com!")
+            print(e)
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
