@@ -120,6 +120,31 @@ class Exchanges():
             print("Error fetching book from poloniex!")
 
     @asyncio.coroutine
+    def orderbook_chbtc(self, quote="cny", base="bts"):
+        try:
+            quote = quote.upper()
+            base = base.upper()
+            url = "http://api.chbtc.com/data/v1/depth"
+            params = {
+                "currency": "%s_%s" % (base, quote),
+                "size": 150
+                }
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            for order_type in self.order_types:
+                for order in result[order_type]:
+                    order[0] = float(order[0])
+                    order[1] = float(order[1])
+            order_book_ask = sorted(result["asks"])
+            order_book_bid = sorted(result["bids"], reverse=True)
+            return {"bids": order_book_bid, "asks": order_book_ask}
+        except Exception as e:
+            print("Error fetching book from chbtc!")
+            print(e)
+
+    @asyncio.coroutine
     def ticker_btc38(self, quote="cny", base="bts"):
         try:
             url = "http://api.btc38.com/v1/ticker.php?c=%s&mk_type=%s" % (
@@ -375,17 +400,17 @@ if __name__ == "__main__":
     tasks = [
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
-        # loop.create_task(run_task(exchanges.orderbook_btc38)),
+        loop.create_task(run_task(exchanges.orderbook_btc38)),
+        loop.create_task(run_task(exchanges.orderbook_chbtc))
         # loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
-        # loop.create_task(run_task(exchanges.orderbook_bter)),
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
         # loop.create_task(run_task(exchanges.orderbook_poloniex)),
         # loop.create_task(run_task(exchanges.ticker_btc38)),
-        loop.create_task(run_task(exchanges.ticker_gdax)),
+        # loop.create_task(run_task(exchanges.ticker_gdax)),
         # loop.create_task(run_task(exchanges.ticker_btcchina)),
         # loop.create_task(run_task(exchanges.ticker_huobi)),
         # loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
-        loop.create_task(run_task(exchanges.ticker_okcoin_com))
+        # loop.create_task(run_task(exchanges.ticker_okcoin_com))
         ]
     loop.run_until_complete(asyncio.wait(tasks))
     loop.run_forever()

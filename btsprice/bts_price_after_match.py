@@ -50,7 +50,7 @@ class BTSPriceAfterMatch(object):
         for market in list(self.orderbook.keys()):
             if market not in valid_price_dict:
                 del self.orderbook[market]
-                return
+                continue
             change = fabs((valid_price_dict[market] - valid_price)/valid_price)
             # if offset more than 20%, this market is invalid
             if change > 0.2:
