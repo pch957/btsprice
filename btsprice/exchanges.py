@@ -169,6 +169,33 @@ class Exchanges():
             print(e)
 
     @asyncio.coroutine
+    def orderbook_19800(self, quote="cny", base="bts"):
+        try:
+            quote = quote.lower()
+            base = base.lower()
+            url = "https://www.19800.com/api/v1/depth"
+            params = {
+                "market": "%s_%s" % (quote, base)
+                }
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            result = result['data']
+            order_book_ask = []
+            order_book_bid = []
+            for order in result['bids']:
+                order_book_bid.append([float(order['Price']), float(order['Volume'])])
+            for order in result['asks']:
+                order_book_ask.append([float(order['Price']), float(order['Volume'])])
+            order_book_ask = sorted(order_book_ask)
+            order_book_bid = sorted(order_book_bid, reverse=True)
+            return {"bids": order_book_bid, "asks": order_book_ask}
+        except Exception as e:
+            print("Error fetching book from 19800!")
+            print(e)
+
+    @asyncio.coroutine
     def ticker_btc38(self, quote="cny", base="bts"):
         try:
             url = "http://api.btc38.com/v1/ticker.php?c=%s&mk_type=%s" % (
@@ -426,7 +453,7 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         # loop.create_task(run_task(exchanges.orderbook_btc38)),
         loop.create_task(run_task(exchanges.orderbook_chbtc)),
-        loop.create_task(run_task(exchanges.orderbook_jubi))
+        loop.create_task(run_task(exchanges.orderbook_19800))
         # loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
         # loop.create_task(run_task(exchanges.orderbook_poloniex)),
