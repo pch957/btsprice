@@ -28,7 +28,8 @@
         "poloniex_btc": 1,
         "yunbi_cny": 1,
         "btc38_cny": 1,
-        "chbtc_cny": 1
+        "chbtc_cny": 1,
+        "jubi_cny": 1
     },
     "asset_config": {
         "default": {

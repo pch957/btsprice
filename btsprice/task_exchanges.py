@@ -151,6 +151,9 @@ class TaskExchanges(object):
                 "chbtc_cny", "CNY",
                 self.exchanges.orderbook_chbtc, "cny", "bts")),
             loop.create_task(self.fetch_orderbook(
+                "jubi_cny", "CNY",
+                self.exchanges.orderbook_jubi, "cny", "bts")),
+            loop.create_task(self.fetch_orderbook(
                 "poloniex_btc", "BTC",
                 self.exchanges.orderbook_poloniex, "btc", "bts")),
             loop.create_task(self.fetch_orderbook(
