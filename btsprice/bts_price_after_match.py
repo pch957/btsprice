@@ -40,6 +40,9 @@ class BTSPriceAfterMatch(object):
         for market in self.market_weight:
             if market not in self.orderbook:
                 continue
+            if len(self.orderbook[market]["bids"]) == 0 or \
+                    len(self.orderbook[market]["asks"]) == 0:
+                    continue
             _price = (
                 self.orderbook[market]["bids"][0][0] + self.
                 orderbook[market]["asks"][0][0])/2
