@@ -120,6 +120,33 @@ class Exchanges():
             print("Error fetching book from poloniex!")
 
     @asyncio.coroutine
+    def orderbook_bittrex(self, quote="btc", base="bts"):
+        try:
+            quote = quote.upper()
+            base = base.upper()
+            url = "https://bittrex.com/api/v1.1/public/getorderbook"
+            params = {
+                "type": "both",
+                "market": "%s-%s" % (quote, base)
+                }
+
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            result = yield from response.json()
+            result = result['result']
+            order_book_ask = []
+            order_book_bid = []
+            for order in result['buy']:
+                order_book_bid.append([float(order['Rate']), float(order['Quantity'])])
+            for order in result['sell']:
+                order_book_ask.append([float(order['Rate']), float(order['Quantity'])])
+            order_book_ask = sorted(order_book_ask)
+            order_book_bid = sorted(order_book_bid, reverse=True)
+            return {"bids": order_book_bid, "asks": order_book_ask}
+        except Exception as e:
+            print("Error fetching book from bittrex!")
+
+    @asyncio.coroutine
     def orderbook_chbtc(self, quote="cny", base="bts"):
         try:
             quote = quote.lower()
@@ -452,11 +479,12 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         # loop.create_task(run_task(exchanges.orderbook_btc38)),
-        loop.create_task(run_task(exchanges.orderbook_chbtc)),
-        loop.create_task(run_task(exchanges.orderbook_19800))
+        loop.create_task(run_task(exchanges.orderbook_bittrex)),
+        # loop.create_task(run_task(exchanges.orderbook_chbtc)),
+        # loop.create_task(run_task(exchanges.orderbook_19800))
         # loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
-        # loop.create_task(run_task(exchanges.orderbook_poloniex)),
+        loop.create_task(run_task(exchanges.orderbook_poloniex))
         # loop.create_task(run_task(exchanges.ticker_btc38)),
         # loop.create_task(run_task(exchanges.ticker_gdax)),
         # loop.create_task(run_task(exchanges.ticker_btcchina)),

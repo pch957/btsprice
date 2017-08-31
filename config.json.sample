@@ -26,6 +26,7 @@
         "btsbots_usd": 0.5,
         "btsbots_open.btc": 1.0,
         "poloniex_btc": 1,
+        "bittrex_btc": 1,
         "yunbi_cny": 1,
         "btc38_cny": 1,
         "chbtc_cny": 1,
