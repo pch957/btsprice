@@ -67,30 +67,33 @@ class BTSPriceAfterMatch(object):
     def compute_rate_cny(self):
         btc_ticker = self.data["ticker"].copy()
         self.remove_timeout(btc_ticker)
-        price_btc_queue = {"CNY": [], "USD": []}
+        # price_btc_queue = {"CNY": [], "USD": []}
+        price_btc_queue = {"USD": []}
         price_btc = {}
         for name in btc_ticker:
             quote = btc_ticker[name]["quote"]
-            price_btc_queue[quote].append(btc_ticker[name]["last"])
+            if quote in price_btc_queue:
+                price_btc_queue[quote].append(btc_ticker[name]["last"])
         for asset in price_btc_queue:
             if len(price_btc_queue[asset]) == 0:
                 return
             price_btc[asset] = get_median(price_btc_queue[asset])
             # print(price_btc[asset], price_btc_queue[asset])
         rate_cny = {"CNY": 1.0}
-        rate_cny["BTC"] = price_btc["CNY"]
-        rate_cny["USD"] = price_btc["CNY"] / price_btc["USD"]
+        # rate_cny["BTC"] = price_btc["CNY"]
+        # rate_cny["USD"] = price_btc["CNY"] / price_btc["USD"]
 
         rate = self.data["rate"]
         if len(rate) == 0:
             return
-        # rate_yahoo = rate["yahoo"]
-        # rate_cny["USD"] = 1/rate_yahoo["USD"]["CNY"]
+        rate_yahoo = rate["yahoo"]
+        rate_cny["USD"] = 1/rate_yahoo["USD"]["CNY"]
+        rate_cny["BTC"] = price_btc["USD"] * rate_cny["USD"]
 
-        rate_cny["BTC"] = 0.0
-        for asset in price_btc:
-            rate_cny["BTC"] += price_btc[asset] * rate_cny[asset]
-        rate_cny["BTC"] /= len(price_btc)
+        # rate_cny["BTC"] = 0.0
+        # for asset in price_btc:
+        #     rate_cny["BTC"] += price_btc[asset] * rate_cny[asset]
+        # rate_cny["BTC"] /= len(price_btc)
 
         rate_source = {}
         for quote in ["CNY", "USD"]:
