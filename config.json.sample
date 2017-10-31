@@ -2,8 +2,11 @@
     "witness": "",
     "timer_minute": 2,
     "asset_list": [
-        "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY", "TCNY",
+        "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY",
     "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "TUSD", "ARS"],
+    "alias": {
+        "RUBLE": "RUB"
+    },
     "cli_wallet": {
         "host" : "localhost",
         "port" : 8092,
@@ -13,7 +16,7 @@
     },
     "price_limit": {
         "common": "only update price feed when the change rate is between 1% ~ 50%",
-        "change_min": 1,
+        "change_min": 0.5,
         "change_max": 50,
         "common": "spread bid price to price*(1+spread), ask price to price*(1-spread)",
         "common": "excute the order book, get the real price",
@@ -22,25 +25,19 @@
         "filter_minute": 30
     },
     "market_weight": {
-        "btsbots_cny": 0.5,
-        "btsbots_usd": 0.5,
+        "btsbots_cny": 1.0,
+        "btsbots_usd": 1.0,
         "btsbots_open.btc": 1.0,
-        "poloniex_btc": 1,
-        "bittrex_btc": 1,
-        "yunbi_cny": 1,
-        "btc38_cny": 1,
-        "chbtc_cny": 1,
-        "19800_cny": 1,
-        "jubi_cny": 1
+        "btc38_cny": 1.0,
+        "poloniex_btc": 1.0
     },
     "asset_config": {
         "default": {
-            "core_exchange_factor": 1.01,
+            "core_exchange_factor": 1.20,
             "maintenance_collateral_ratio": 1750,
             "maximum_short_squeeze_ratio": 1100
         },
-        "TCNY": {"maximum_short_squeeze_ratio": 1001},
-        "TUSD": {"maximum_short_squeeze_ratio": 1001}
+        "TUSD": {"maximum_short_squeeze_ratio": 1050}
     },
     "pusher": {
         "common": "set enable to 1, if you want to subscribe data from pusher service",

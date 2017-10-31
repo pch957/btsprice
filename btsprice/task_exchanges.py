@@ -144,9 +144,15 @@ class TaskExchanges(object):
             loop.create_task(self.fetch_orderbook(
                 "btsbots_open.btc", "BTC",
                 self.exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
+            loop.create_task(self.fetch_orderbook(
+                "btc38_cny", "CNY",
+                self.exchanges.orderbook_btc38, "cny", "bts")),
+            loop.create_task(self.fetch_orderbook(
+                "poloniex_btc", "BTC",
+                self.exchanges.orderbook_poloniex, "btc", "bts"))
             # loop.create_task(self.fetch_orderbook(
-            #     "btc38_cny", "CNY",
-            #     self.exchanges.orderbook_btc38, "cny", "bts")),
+            #     "yunbi_cny", "CNY",
+            #     self.exchanges.orderbook_yunbi, "cny", "bts")),
             # loop.create_task(self.fetch_orderbook(
             #     "chbtc_cny", "CNY",
             #     self.exchanges.orderbook_chbtc, "cny", "bts")),
@@ -156,15 +162,9 @@ class TaskExchanges(object):
             # loop.create_task(self.fetch_orderbook(
             #     "19800_cny", "CNY",
             #     self.exchanges.orderbook_19800, "cny", "bts")),
-            loop.create_task(self.fetch_orderbook(
-                "poloniex_btc", "BTC",
-                self.exchanges.orderbook_poloniex, "btc", "bts")),
-            loop.create_task(self.fetch_orderbook(
-                "bittrex_btc", "BTC",
-                self.exchanges.orderbook_bittrex, "btc", "bts"))
             # loop.create_task(self.fetch_orderbook(
-            #     "yunbi_cny", "CNY",
-            #     self.exchanges.orderbook_yunbi, "cny", "bts"))
+            #     "bittrex_btc", "BTC",
+            #     self.exchanges.orderbook_bittrex, "btc", "bts")),
             ]
 
     def run_tasks(self, loop):
