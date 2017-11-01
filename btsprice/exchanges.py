@@ -15,9 +15,9 @@ class Exchanges():
         self.order_types = ["bids", "asks"]
 
     @asyncio.coroutine
-    def orderbook_btc38(self, quote="cny", base="bts"):
+    def orderbook_aex(self, quote="btc", base="bts"):
         try:
-            url = "http://api.btc38.com/v1/depth.php"
+            url = "http://api.aex.com/depth.php"
             params = {'c': base, 'mk_type': quote}
             response = yield from asyncio.wait_for(self.session.get(
                 url, params=params), 120)
@@ -31,7 +31,7 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except:
-            print("Error fetching book from btc38!")
+            print("Error fetching book from aex!")
 
     @asyncio.coroutine
     def orderbook_bter(self, quote="cny", base="bts"):
@@ -147,14 +147,14 @@ class Exchanges():
             print("Error fetching book from bittrex!")
 
     @asyncio.coroutine
-    def orderbook_chbtc(self, quote="cny", base="bts"):
+    def orderbook_zb(self, quote="btc", base="bts"):
         try:
             quote = quote.lower()
             base = base.lower()
-            url = "http://api.chbtc.com/data/v1/depth"
+            url = "http://api.zb.com/data/v1/depth"
             params = {
-                "currency": "%s_%s" % (base, quote),
-                "size": 150
+                "market": "%s_%s" % (base, quote),
+                "size": 50
                 }
             response = yield from asyncio.wait_for(self.session.get(
                 url, params=params), 120)
@@ -168,7 +168,7 @@ class Exchanges():
             order_book_bid = sorted(result["bids"], reverse=True)
             return {"bids": order_book_bid, "asks": order_book_ask}
         except Exception as e:
-            print("Error fetching book from chbtc!")
+            print("Error fetching book from zb!")
             print(e)
 
     @asyncio.coroutine
@@ -478,13 +478,11 @@ if __name__ == "__main__":
     tasks = [
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
-        # loop.create_task(run_task(exchanges.orderbook_btc38)),
-        # loop.create_task(run_task(exchanges.orderbook_chbtc)),
+        loop.create_task(run_task(exchanges.orderbook_aex))
+        # loop.create_task(run_task(exchanges.orderbook_zb)),
         # loop.create_task(run_task(exchanges.orderbook_19800))
-        # loop.create_task(run_task(exchanges.orderbook_btc38, "cny", "btc")),
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
-        loop.create_task(run_task(exchanges.orderbook_poloniex))
-        # loop.create_task(run_task(exchanges.ticker_btc38)),
+        # loop.create_task(run_task(exchanges.orderbook_poloniex))
         # loop.create_task(run_task(exchanges.ticker_gdax)),
         # loop.create_task(run_task(exchanges.ticker_btcchina)),
         # loop.create_task(run_task(exchanges.ticker_huobi)),

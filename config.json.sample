@@ -28,7 +28,7 @@
         "btsbots_cny": 1.0,
         "btsbots_usd": 1.0,
         "btsbots_open.btc": 1.0,
-        "btc38_cny": 1.0,
+        "aex_btc": 1.0,
         "poloniex_btc": 1.0
     },
     "asset_config": {
