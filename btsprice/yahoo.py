@@ -85,6 +85,9 @@ class Yahoo(object):
                     else:
                         self.rate["USD"][asset] = float(price[asset]) * \
                             float(price[self.quote[asset]]) * scale
+                # need throw a exception is not float
+                else:
+                    raise
                 # there is a bug for yahoo api....
                 if asset == "GOLD" or asset == "SILVER":
                     if self.rate["USD"][asset] < 1:

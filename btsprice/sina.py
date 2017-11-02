@@ -82,6 +82,9 @@ class Sina(object):
                     else:
                         self.rate["USD"][asset] = float(price[asset]) * \
                             float(price[self.quote[asset]]) * scale
+                # need throw a exception is not float
+                else:
+                    raise
         except Exception as e:
             print("Error fetching results from sina!", e)
         # print(self.rate)
