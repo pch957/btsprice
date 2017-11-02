@@ -128,6 +128,18 @@ class TaskExchanges(object):
             loop.create_task(self.fetch_ticker(
                  "okcoin_com", "USD",
                  self.exchanges.ticker_okcoin_com, "usd", "btc")),
+            loop.create_task(self.fetch_ticker(
+                 "bitfinex", "USD",
+                 self.exchanges.ticker_bitfinex, "usd", "btc")),
+            loop.create_task(self.fetch_ticker(
+                 "kraken", "EUR",
+                 self.exchanges.ticker_kraken, "eur", "btc")),
+            loop.create_task(self.fetch_ticker(
+                 "bitflyer_usd", "USD",
+                 self.exchanges.ticker_bitflyer, "usd", "btc")),
+            loop.create_task(self.fetch_ticker(
+                 "bitflyer_jpy", "JPY",
+                 self.exchanges.ticker_bitflyer, "jpy", "btc")),
             ]
 
     def run_tasks_orderbook(self, loop):

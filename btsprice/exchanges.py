@@ -3,6 +3,7 @@ import json
 import asyncio
 import aiohttp
 import datetime
+import time
 
 
 class Exchanges():
@@ -442,26 +443,71 @@ class Exchanges():
     @asyncio.coroutine
     def ticker_bitflyer(self, quote="usd", base="btc"):
         try:
-            url = "https://api.bitflyer.jp/v1/%s_%s" % (
+            quote = quote.upper()
+            base = base.upper()
+            url = "https://api.bitflyer.com/v1/ticker?product_code=%s_%s" % (
                 base, quote)
             response = yield from asyncio.wait_for(self.session.get(url), 120)
             response = yield from response.read()
             result = json.loads(response.decode("utf-8-sig"))
-            result = result["%s_%s" % (base, quote)]
             _ticker = {}
-            _ticker["last"] = result["last"]
-            _ticker["vol"] = result["vol_cur"]
-            _ticker["buy"] = result["buy"]
-            _ticker["sell"] = result["sell"]
-            _ticker["low"] = result["low"]
-            _ticker["high"] = result["high"]
+            _ticker["last"] = result["ltp"]
             for key in _ticker:
                 _ticker[key] = float(_ticker[key])
-            _ticker["time"] = int(result['updated'])
-            _ticker["name"] = "btce"
+            _ticker["time"] = int(time.time())
+            _ticker["name"] = "bitflyer_%s" % quote
             return _ticker
         except Exception as e:
-            print("Error fetching ticker from btc-e.com!")
+            print("Error fetching ticker from bitflyer.com!")
+            print(e)
+
+    @asyncio.coroutine
+    def ticker_bitfinex(self, quote="usd", base="btc"):
+        try:
+            quote = quote.upper()
+            base = base.upper()
+            url = "https://api.bitfinex.com/v2/ticker/t%s%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            _ticker = {}
+            _ticker["last"] = result[6]
+            _ticker["vol"] = result[7]
+            _ticker["buy"] = result[0]
+            _ticker["sell"] = result[2]
+            _ticker["low"] = result[9]
+            _ticker["high"] = result[8]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(time.time())
+            _ticker["name"] = "bitfinex"
+            return _ticker
+        except Exception as e:
+            print("Error fetching ticker from bitfinex.com!")
+            print(e)
+
+    @asyncio.coroutine
+    def ticker_kraken(self, quote="eur", base="btc"):
+        try:
+            quote = quote.upper()
+            base = base.upper()
+            url = "https://api.kraken.com/0/public/Ticker?pair=%s%s" % (
+                base, quote)
+            response = yield from asyncio.wait_for(self.session.get(url), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            for key in result['result']:
+                result = result['result'][key]
+            _ticker = {}
+            _ticker["last"] = result['c'][0]
+            for key in _ticker:
+                _ticker[key] = float(_ticker[key])
+            _ticker["time"] = int(time.time())
+            _ticker["name"] = "kraken"
+            return _ticker
+        except Exception as e:
+            print("Error fetching ticker from kraken.com!")
             print(e)
 
 if __name__ == "__main__":
@@ -478,7 +524,7 @@ if __name__ == "__main__":
     tasks = [
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
-        loop.create_task(run_task(exchanges.orderbook_aex))
+        # loop.create_task(run_task(exchanges.orderbook_aex))
         # loop.create_task(run_task(exchanges.orderbook_zb)),
         # loop.create_task(run_task(exchanges.orderbook_19800))
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
@@ -488,6 +534,9 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.ticker_huobi)),
         # loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
         # loop.create_task(run_task(exchanges.ticker_okcoin_com))
+        loop.create_task(run_task(exchanges.ticker_bitfinex)),
+        loop.create_task(run_task(exchanges.ticker_bitflyer, 'jpy', 'btc')),
+        loop.create_task(run_task(exchanges.ticker_bitflyer, "usd", 'btc'))
         ]
     loop.run_until_complete(asyncio.wait(tasks))
     loop.run_forever()
