@@ -46,7 +46,7 @@ Login to your cli_wallet
 
 Make sure your cli_wallet is advertising on rpc port entered in cli_wallet object above.
 
->You are going to make sure this continues to run as a background process even after you logout.
+>Make sure this continues to run as a background process even after you logout.
 
 ```
 cli_wallet -H 127.0.0.1:8093
@@ -54,7 +54,7 @@ cli_wallet -H 127.0.0.1:8093
 
 Run the price feed script
 
->>You are going to make sure this continues to run as a background process even after you logout.
+>Make sure this continues to run as a background process even after you logout.
 
 ```
 cd btsprice
