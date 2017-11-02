@@ -73,19 +73,8 @@ class BTSPriceAfterMatch(object):
 
     def compute_rate_cny(self):
         btc_ticker = self.data["ticker"].copy()
+        # print(btc_ticker)
         self.remove_timeout(btc_ticker)
-        # price_btc_queue = {"CNY": [], "USD": []}
-        price_btc_queue = {"USD": []}
-        price_btc = {}
-        for name in btc_ticker:
-            quote = btc_ticker[name]["quote"]
-            if quote in price_btc_queue:
-                price_btc_queue[quote].append(btc_ticker[name]["last"])
-        for asset in price_btc_queue:
-            if len(price_btc_queue[asset]) == 0:
-                return
-            price_btc[asset] = get_median(price_btc_queue[asset])
-            # print(price_btc[asset], price_btc_queue[asset])
         rate_cny = {"CNY": 1.0}
         # rate_cny["BTC"] = price_btc["CNY"]
         # rate_cny["USD"] = price_btc["CNY"] / price_btc["USD"]
@@ -94,7 +83,6 @@ class BTSPriceAfterMatch(object):
         if len(rate) == 0:
             return
         rate_cny["USD"] = self.get_rate_cny_usd(rate)
-        rate_cny["BTC"] = price_btc["USD"] * rate_cny["USD"]
 
         # rate_cny["BTC"] = 0.0
         # for asset in price_btc:
@@ -122,6 +110,20 @@ class BTSPriceAfterMatch(object):
 
         rate_cny["TCNY"] = rate_cny["CNY"]
         rate_cny["TUSD"] = rate_cny["USD"]
+
+        # price_btc_queue = {"CNY": [], "USD": []}
+        price_btc_queue = []
+        price_btc = {}
+        for name in btc_ticker:
+            quote = btc_ticker[name]["quote"]
+            if quote not in rate_cny:
+                continue
+            price_btc_queue.append(btc_ticker[name]["last"] * rate_cny[quote])
+        if len(price_btc_queue) == 0:
+            return
+        price_btc = get_median(price_btc_queue)
+        # print(price_btc, price_btc_queue)
+        rate_cny["BTC"] = price_btc
         self.rate_cny = rate_cny
 
     def update_orderbook(self):
@@ -260,7 +262,7 @@ if __name__ == "__main__":
                 print("efficent depth : %s" % valid_depth)
             else:
                 print("can't get valid market order")
-            yield from asyncio.sleep(20)
+            yield from asyncio.sleep(10)
     loop.create_task(task_compute_price())
     loop.run_forever()
     loop.close()
