@@ -18,7 +18,7 @@ $ cp ./config.json.sample ./config.json
 $ vim ./config.json
 ```
 
-Set CLI Wallet user:
+Set CLI Wallet object:
 
 - witness = your witness account name
 - host = localhost (if installing pricefeed on same server as the node)
