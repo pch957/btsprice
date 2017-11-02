@@ -5,15 +5,14 @@
 
 This project provides a bitshares price feed for witnesses
 
-Project Setup
-=============
+# Project Setup
 
-Quick Start
-------------
+## Quick Start
 
 Install
 ```
 $ git clone https://github.com/pch957/btsprice.git
+$ cd btsprice
 $ python3 ./setup.py install --user
 $ cp ./config.json.sample ./config.json
 $ vim ./config.json
@@ -23,7 +22,7 @@ Set CLI Wallet user:
 
 - witness = your witness account name
 - host = localhost (if installing pricefeed on same server as the node)
-- port - whatever port the node is running on (number, no quotes)
+- port - whatever port the cli rpc port is on (number, no quotes)
 - user = leave blank
 - passwd = leave blank
 - unlock = the cli wallet password
@@ -32,8 +31,8 @@ Set CLI Wallet user:
     "witness": "",
 
     "cli_wallet": {
-        "host" : "",
-        "port" : ,
+        "host" : "localhost",
+        "port" : 8093,
         "user" : "",
         "passwd" : "",
         "unlock" : ""
@@ -44,14 +43,23 @@ Login to your cli_wallet
 ```
 >>> import_key "your_witness_account_name" YOUR_ACTIVE_PRIVATE_KEY
 ```
-Run
+
+Make sure your cli_wallet is advertising on rpc port entered in cli_wallet object above.
+
+>You are going to make sure this continues to run as a background process even after you logout.
+
 ```
-python3 main.py —config ../config.json
+cli_wallet -H 127.0.0.1:8093
 ```
 
-Configuration
-------------
-todo
+Run the price feed script
+
+>>You are going to make sure this continues to run as a background process even after you logout.
+
+```
+cd btsprice
+python3 ./main.py --config ../config.json
+```
 
 Supported Python Versions
 =========================
