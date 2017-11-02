@@ -1,11 +1,9 @@
-=========================
-get bitshares price
-=========================
 
-.. image:: https://bitsharestalk.org/BitSharesFinalTM200.png
-   :target: https://bitsharestalk.org
+# get bitshares price
 
-This project provides bitshares price
+![](https://bitsharestalk.org/BitSharesFinalTM200.png)
+
+This project provides a bitshares price feed for witnesses
 
 Project Setup
 =============
@@ -50,11 +48,6 @@ Run
 ```
 python3 main.py —config ../config.json
 ```
-
-
-       
-        
-
 
 Configuration
 ------------
