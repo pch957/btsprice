@@ -173,6 +173,31 @@ class Exchanges():
             print(e)
 
     @asyncio.coroutine
+    def orderbook_lbank(self, quote="btc", base="bts"):
+        try:
+            quote = quote.lower()
+            base = base.lower()
+            url = "https://api.lbank.info/v1/depth.do"
+            params = {
+                "symbol": "%s_%s" % (base, quote),
+                "size": 60
+                }
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            for order_type in self.order_types:
+                for order in result[order_type]:
+                    order[0] = float(order[0])
+                    order[1] = float(order[1])
+            order_book_ask = sorted(result["asks"])
+            order_book_bid = sorted(result["bids"], reverse=True)
+            return {"bids": order_book_bid, "asks": order_book_ask}
+        except Exception as e:
+            print("Error fetching book from lbank!")
+            print(e)
+
+    @asyncio.coroutine
     def orderbook_jubi(self, quote="cny", base="bts"):
         try:
             quote = quote.lower()
@@ -525,8 +550,7 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         # loop.create_task(run_task(exchanges.orderbook_aex))
-        loop.create_task(run_task(exchanges.orderbook_zb, "USDT", "BTS")),
-        loop.create_task(run_task(exchanges.orderbook_zb, "BTC", "BTS"))
+        loop.create_task(run_task(exchanges.orderbook_lbank, "BTC", "BTS"))
         # loop.create_task(run_task(exchanges.orderbook_19800))
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
         # loop.create_task(run_task(exchanges.orderbook_poloniex))
