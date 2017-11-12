@@ -74,7 +74,7 @@ class Exchanges():
     @asyncio.coroutine
     def orderbook_btsbots(self, quote="CNY", base="BTS"):
         try:
-            url = "https://btsbots.com/api/order?max_results=30&where="
+            url = "https://btsbots.com/api/order?max_results=100&where="
             # url = "http://localhost:5000/api/order?max_results=30&where="
             params = "a_s==%s;a_b==%s" % (base, quote)
             response = yield from asyncio.wait_for(self.session.get(
