@@ -156,12 +156,12 @@ class TaskExchanges(object):
             loop.create_task(self.fetch_orderbook(
                 "aex_btc", "BTC",
                 self.exchanges.orderbook_aex, "btc", "bts")),
-            # loop.create_task(self.fetch_orderbook(
-            #     "zb_btc", "BTC",
-            #     self.exchanges.orderbook_zb, "btc", "bts")),
-            # loop.create_task(self.fetch_orderbook(
-            #     "zb_usdt", "USD",
-            #     self.exchanges.orderbook_zb, "usdt", "bts")),
+            loop.create_task(self.fetch_orderbook(
+                "zb_btc", "BTC",
+                self.exchanges.orderbook_zb, "btc", "bts")),
+            loop.create_task(self.fetch_orderbook(
+                "zb_usdt", "USD",
+                self.exchanges.orderbook_zb, "usdt", "bts")),
             loop.create_task(self.fetch_orderbook(
                 "poloniex_btc", "BTC",
                 self.exchanges.orderbook_poloniex, "btc", "bts"))

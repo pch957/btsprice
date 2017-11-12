@@ -525,7 +525,8 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         # loop.create_task(run_task(exchanges.orderbook_aex))
-        # loop.create_task(run_task(exchanges.orderbook_zb)),
+        loop.create_task(run_task(exchanges.orderbook_zb, "USDT", "BTS")),
+        loop.create_task(run_task(exchanges.orderbook_zb, "BTC", "BTS"))
         # loop.create_task(run_task(exchanges.orderbook_19800))
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
         # loop.create_task(run_task(exchanges.orderbook_poloniex))
@@ -534,9 +535,9 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.ticker_huobi)),
         # loop.create_task(run_task(exchanges.ticker_okcoin_cn)),
         # loop.create_task(run_task(exchanges.ticker_okcoin_com))
-        loop.create_task(run_task(exchanges.ticker_bitfinex)),
-        loop.create_task(run_task(exchanges.ticker_bitflyer, 'jpy', 'btc')),
-        loop.create_task(run_task(exchanges.ticker_bitflyer, "usd", 'btc'))
+        # loop.create_task(run_task(exchanges.ticker_bitfinex)),
+        # loop.create_task(run_task(exchanges.ticker_bitflyer, 'jpy', 'btc')),
+        # loop.create_task(run_task(exchanges.ticker_bitflyer, "usd", 'btc'))
         ]
     loop.run_until_complete(asyncio.wait(tasks))
     loop.run_forever()
