@@ -198,6 +198,29 @@ class Exchanges():
             print(e)
 
     @asyncio.coroutine
+    def orderbook_binance(self, quote="btc", base="bts"):
+        try:
+            quote = quote.upper()
+            base = base.upper()
+            url = "https://www.binance.com/api/v1/depth"
+            params = {
+                "symbol": "%s%s" % (base, quote)
+                }
+            response = yield from asyncio.wait_for(self.session.get(
+                url, params=params), 120)
+            response = yield from response.read()
+            result = json.loads(response.decode("utf-8-sig"))
+            for order_type in self.order_types:
+                for idx, val in enumerate(result[order_type]):
+                    result[order_type][idx] = [float(val[0]), float(val[1])]
+            order_book_ask = sorted(result["asks"])
+            order_book_bid = sorted(result["bids"], reverse=True)
+            return {"bids": order_book_bid, "asks": order_book_ask}
+        except Exception as e:
+            print("Error fetching book from binance!")
+            print(e)
+
+    @asyncio.coroutine
     def orderbook_jubi(self, quote="cny", base="bts"):
         try:
             quote = quote.lower()
@@ -550,10 +573,12 @@ if __name__ == "__main__":
         # loop.create_task(run_task(exchanges.orderbook_btsbots)),
         # loop.create_task(run_task(exchanges.orderbook_btsbots, "OPEN.BTC", "BTS")),
         # loop.create_task(run_task(exchanges.orderbook_aex))
-        loop.create_task(run_task(exchanges.orderbook_lbank, "BTC", "BTS"))
+        # loop.create_task(run_task(exchanges.orderbook_lbank, "BTC", "BTS"))
+        loop.create_task(run_task(exchanges.orderbook_binance))
         # loop.create_task(run_task(exchanges.orderbook_19800))
         # loop.create_task(run_task(exchanges.orderbook_yunbi)),
         # loop.create_task(run_task(exchanges.orderbook_poloniex))
+        # loop.create_task(run_task(exchanges.ticker_btc38)),
         # loop.create_task(run_task(exchanges.ticker_gdax)),
         # loop.create_task(run_task(exchanges.ticker_btcchina)),
         # loop.create_task(run_task(exchanges.ticker_huobi)),

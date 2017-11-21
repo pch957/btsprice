@@ -32,6 +32,7 @@
         "zb_usdt": 1.0,
         "zb_btc": 1.0,
         "lbank_btc": 1.0,
+        "binance_btc": 1.0,
         "poloniex_btc": 1.0
     },
     "asset_config": {
