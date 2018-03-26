@@ -3,6 +3,7 @@ import time
 import copy
 from math import fabs
 from btsprice.misc import get_median
+from btsprice.aba import compute_hertz, compute_hero
 # from pprint import pprint
 
 
@@ -111,9 +112,7 @@ class BTSPriceAfterMatch(object):
         rate_cny["TCNY"] = rate_cny["CNY"]
         rate_cny["TUSD"] = rate_cny["USD"]
 
-        # price_btc_queue = {"CNY": [], "USD": []}
         price_btc_queue = []
-        price_btc = {}
         for name in btc_ticker:
             quote = btc_ticker[name]["quote"]
             if quote not in rate_cny:
@@ -124,6 +123,10 @@ class BTSPriceAfterMatch(object):
         price_btc = get_median(price_btc_queue)
         # print(price_btc, price_btc_queue)
         rate_cny["BTC"] = price_btc
+
+        rate_cny["HERTZ"] = compute_hertz() * rate_cny["USD"]
+        rate_cny["HERO"] = compute_hero() * rate_cny["USD"]
+
         self.rate_cny = rate_cny
 
     def update_orderbook(self):

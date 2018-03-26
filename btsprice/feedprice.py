@@ -7,6 +7,7 @@ import asyncio
 from btsprice.task_exchanges import TaskExchanges
 from btsprice.task_pusher import TaskPusher
 from btsprice.bts_price_after_match import BTSPriceAfterMatch
+from btsprice.aba import ABA
 from btsprice.feedapi import FeedApi
 import time
 import logging
@@ -101,7 +102,8 @@ class FeedPrice(object):
                           "SGD", "HKD", "RUB", "SEK", "NZD", "CNY",
                           "MXN", "CAD", "CHF", "AUD", "GBP", "JPY",
                           "EUR", "USD", "SHENZHEN", "NASDAQC", "NIKKEI",
-                          "HANGSENG", "SHANGHAI", "TCNY", "TUSD", "ARS"]
+                          "HANGSENG", "SHANGHAI", "TCNY", "TUSD", "ARS", 
+                          "HERO", "HERTZ"]
         self.price_queue = {}
         for asset in peg_asset_list:
             self.price_queue[asset] = []
@@ -158,7 +160,8 @@ class FeedPrice(object):
                 continue
             self.price_queue[asset].append(bts_price_in_cny
                                            / self.bts_price.rate_cny[asset])
-            if len(self.price_queue[asset]) > self.sample:
+            max_samples = self.sample if asset not in ABA else 1 
+            if len(self.price_queue[asset]) > max_samples:
                 self.price_queue[asset].pop(0)
             median_price[asset] = sorted(
                 self.price_queue[asset])[int(len(self.price_queue[asset]) / 2)]
@@ -173,7 +176,8 @@ class FeedPrice(object):
                 continue
             self.price_queue[asset].append(bts_price_in_cny
                                            / self.bts_price.rate_cny[asset])
-            if len(self.price_queue[asset]) > self.sample:
+            max_samples = self.sample if asset not in ABA else 1 
+            if len(self.price_queue[asset]) > max_samples:
                 self.price_queue[asset].pop(0)
             average_price[asset] = sum(
                 self.price_queue[asset])/len(self.price_queue[asset])
