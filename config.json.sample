@@ -3,7 +3,8 @@
     "timer_minute": 2,
     "asset_list": [
         "BTC", "SILVER", "GOLD", "TRY", "SGD", "HKD", "NZD", "CNY",
-    "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "TUSD", "ARS"],
+        "MXN", "CAD", "CHF", "AUD", "GBP", "JPY", "EUR", "USD", "KRW", "TUSD", "ARS", 
+        "HERTZ, "HERO"],
     "alias": {
         "RUBLE": "RUB"
     },
@@ -41,7 +42,15 @@
             "maintenance_collateral_ratio": 1750,
             "maximum_short_squeeze_ratio": 1100
         },
-        "TUSD": {"maximum_short_squeeze_ratio": 1050}
+        "TUSD": {"maximum_short_squeeze_ratio": 1050},
+        "HERO": {
+            "maintenance_collateral_ratio": 2000,
+            "maximum_short_squeeze_ratio": 1100
+        },
+        "HERTZ": {
+            "maintenance_collateral_ratio": 2000,
+            "maximum_short_squeeze_ratio": 1100
+        }
     },
     "pusher": {
         "common": "set enable to 1, if you want to subscribe data from pusher service",
